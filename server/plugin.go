@@ -37,7 +37,7 @@ func (p *Plugin) setupBot(reader readFile) error {
 		Description: "Created by the Suggestions plugin.",
 	})
 	if err != nil {
-		return errors.Wrap(err, "failed to ensure github bot")
+		return errors.Wrap(err, "failed to ensure suggestions bot")
 	}
 	p.botUserID = botID
 	bundlePath, err := p.API.GetBundlePath()
