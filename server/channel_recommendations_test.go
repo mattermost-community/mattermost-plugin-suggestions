@@ -71,7 +71,8 @@ func TestPreCalculateRecommendations(t *testing.T) {
 	t.Run("getActivity error", func(t *testing.T) {
 		plugin, api := getErrorFuncPlugin("KVGet", mock.Anything)
 		defer api.AssertExpectations(t)
-		plugin.preCalculateRecommendations()
+		err := plugin.preCalculateRecommendations()
+		assert.NotNil(t, err)
 	})
 
 	t.Run("GetAllPublicChannelsForUser error", func(t *testing.T) {
@@ -90,7 +91,8 @@ func TestPreCalculateRecommendations(t *testing.T) {
 		api.On("KVSet", mock.Anything, mock.Anything).Return(nil)
 		api.On("GetTeamsForUser", mock.Anything).Return(nil, model.NewAppError("", "", nil, "", 404))
 
-		plugin.preCalculateRecommendations()
+		err := plugin.preCalculateRecommendations()
+		assert.NotNil(t, err)
 	})
 
 }

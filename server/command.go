@@ -68,7 +68,10 @@ func (p *Plugin) suggestChannelResponse(args *model.CommandArgs) (*model.Command
 	if err != nil {
 		return nil, appError("Can't retreive user recommendations.", err)
 	}
-	channels := p.getChannelListFromRecommendations(recommendations)
+	channels, appErr := p.getChannelListFromRecommendations(recommendations)
+	if appErr != nil {
+		return nil, appErr
+	}
 	if len(channels) == 0 {
 		p.postCommandResponse(args, noNewChannelsText)
 		return &model.CommandResponse{}, nil
@@ -90,7 +93,10 @@ func (p *Plugin) reset(args *model.CommandArgs) (*model.CommandResponse, *model.
 }
 
 func (p *Plugin) compute(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	p.preCalculateRecommendations()
+	err := p.preCalculateRecommendations()
+	if err != nil {
+		return nil, err
+	}
 	p.postCommandResponse(args, computeText)
 	return &model.CommandResponse{}, nil
 }

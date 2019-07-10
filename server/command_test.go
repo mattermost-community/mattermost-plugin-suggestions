@@ -128,17 +128,17 @@ func TestExecuteCommandSuggestChannels(t *testing.T) {
 		assert.Equal(t, &model.CommandResponse{}, resp)
 	})
 	t.Run("GetChannel channel error", func(t *testing.T) {
-		text := noNewChannelsText
-		plugin, api := getPostPlugin(user, channel, text)
+		plugin := &Plugin{}
+		api := &plugintest.API{}
 		channels := make([]*recommendedChannel, 1)
 		channels[0] = &recommendedChannel{ChannelID: "chan", Score: 0.1}
 		bytes, _ := json.Marshal(channels)
 		api.On("KVGet", mock.Anything).Return(bytes, (*model.AppError)(nil))
-		api.On("GetChannel", mock.Anything).Return(&model.Channel{DisplayName: "CoolChannel"}, model.NewAppError("", "", nil, "", 404))
+		api.On("GetChannel", mock.Anything).Return(nil, model.NewAppError("", "", nil, "", 404))
+		plugin.SetAPI(api)
 		defer api.AssertExpectations(t)
-		resp, err := plugin.ExecuteCommand(nil, args)
-		assert.Nil(t, err)
-		assert.Equal(t, &model.CommandResponse{}, resp)
+		_, err := plugin.ExecuteCommand(nil, args)
+		assert.NotNil(t, err)
 	})
 
 	t.Run("retreive user recomendations error", func(t *testing.T) {

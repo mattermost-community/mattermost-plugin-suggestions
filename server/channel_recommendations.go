@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sort"
 
 	"github.com/iomodo/mattermost-plugin-suggestions-1/server/ml"
@@ -35,7 +34,7 @@ func min(a, b int) int {
 	return b
 }
 
-func (p *Plugin) getChannelListFromRecommendations(recommendations []*recommendedChannel) []*model.Channel {
+func (p *Plugin) getChannelListFromRecommendations(recommendations []*recommendedChannel) ([]*model.Channel, *model.AppError) {
 	sort.Slice(recommendations, func(i, j int) bool {
 		return recommendations[i].Score > recommendations[j].Score
 	})
@@ -44,21 +43,19 @@ func (p *Plugin) getChannelListFromRecommendations(recommendations []*recommende
 	for i := 0; i < n; i++ {
 		channel, err := p.API.GetChannel(recommendations[i].ChannelID)
 		if err != nil {
-			mlog.Error(fmt.Sprintf("Can't get channel - %v, err is %v", recommendations[i].ChannelID, err.Error()))
-			continue
+			return nil, err
 		}
 		channels = append(channels, channel)
 	}
-	return channels
+	return channels, nil
 }
 
-func (p *Plugin) preCalculateRecommendations() {
+func (p *Plugin) preCalculateRecommendations() *model.AppError {
 	mlog.Info("preCalculateRecommendations")
 
 	userActivity, err := p.getActivity()
 	if err != nil {
-		mlog.Error("Can't get user activity. " + err.Error())
-		return
+		return appError("Can't get user activity.", err)
 	}
 	params := map[string]interface{}{"k": 10}
 	knn := ml.NewSimpleKNN(params)
@@ -68,8 +65,7 @@ func (p *Plugin) preCalculateRecommendations() {
 		channels, appErr := p.GetAllPublicChannelsForUser(userID)
 
 		if appErr != nil {
-			mlog.Error("Can't get public channels for user. " + appErr.Error())
-			return
+			return appErr
 		}
 		for _, channel := range channels {
 			if _, ok := userActivity[userID][channel.Id]; !ok {
@@ -92,5 +88,5 @@ func (p *Plugin) preCalculateRecommendations() {
 		}
 		p.saveUserRecommendations(userID, recommendedChannels)
 	}
-
+	return nil
 }

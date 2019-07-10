@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/pkg/errors"
@@ -65,7 +66,9 @@ func (p *Plugin) startPrecalcJob() error {
 	}
 	c := cron.New()
 	if err := c.AddFunc(p.preCalcPeriod, func() {
-		p.preCalculateRecommendations()
+		if appErr := p.preCalculateRecommendations(); appErr != nil {
+			mlog.Error("Can't calculate recommendations", mlog.Err(appErr))
+		}
 	}); err != nil {
 		return err
 	}
@@ -89,8 +92,11 @@ func (p *Plugin) OnActivate() error {
 	if err != nil {
 		return err
 	}
-	go p.preCalculateRecommendations() //Run pre-calculation at once
-
+	go func() { //precalculate at once
+		if err := p.preCalculateRecommendations(); err != nil {
+			mlog.Error("Can't calculate recommendations", mlog.Err(err))
+		}
+	}()
 	return nil
 }
 
