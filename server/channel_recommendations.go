@@ -76,16 +76,16 @@ func (p *Plugin) preCalculateRecommendations() {
 				if !p.isChannelOk(channel.Id) {
 					continue
 				}
-				pred, err := knn.Predict(userID, channel.Id)
+				score, err := knn.Predict(userID, channel.Id)
 
 				if err != nil {
 					// unknown user or unknown channel
 					continue
 				}
-				if pred != 0 {
+				if score != 0 {
 					recommendedChannels = append(recommendedChannels, &recommendedChannel{
 						ChannelID: channel.Id,
-						Score:     pred,
+						Score:     score,
 					})
 				}
 			}
