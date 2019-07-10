@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
-	"net/http"
 	"path/filepath"
 	"sync"
 
@@ -29,13 +27,6 @@ type Plugin struct {
 	preCalcPeriod string
 	botUserID     string
 }
-
-// ServeHTTP demonstrates a plugin that handles HTTP requests by greeting the world.
-func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello, world!")
-}
-
-// See https://developers.mattermost.com/extend/plugins/server/reference/
 
 type readFile func(filename string) ([]byte, error)
 
