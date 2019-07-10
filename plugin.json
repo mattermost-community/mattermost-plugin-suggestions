@@ -19,7 +19,7 @@
         "footer": "",
         "settings": [{
             "key": "PreCalculationPeriod",
-            "display_name": "Precalculation period:",
+            "display_name": "Precalculation period",
             "type": "text",
             "help_text": "Channel recommendations are precalculated periodically. One can choose the period based on [cron specifications](https://godoc.org/github.com/robfig/cron). Examples: \n @daily - Run once a day, midnight. \n @hourly - Run once an hour, beginning of hour. \n @every 1h30m - Run every hour and thirty minutes. \n The default is @daily"
         }]
