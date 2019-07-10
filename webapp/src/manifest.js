@@ -1,2 +1,2 @@
-export const id = 'suggestions';
+export const id = 'mattermost-plugin-suggestions';
 export const version = '0.1.0';
