@@ -18,15 +18,6 @@ func mapToSlice(m map[string]*model.Channel) []*model.Channel {
 	return channels
 }
 
-func (p *Plugin) isChannelOk(channelID string) bool {
-	posts, err := p.API.GetPostsForChannel(channelID, 0, 1)
-
-	if err != nil || len(posts.Order) == 0 {
-		return false
-	}
-	return true
-}
-
 func min(a, b int) int {
 	if a < b {
 		return a
@@ -69,9 +60,6 @@ func (p *Plugin) preCalculateRecommendations() *model.AppError {
 		}
 		for _, channel := range channels {
 			if _, ok := userActivity[userID][channel.Id]; !ok {
-				if !p.isChannelOk(channel.Id) {
-					continue
-				}
 				score, err := knn.Predict(userID, channel.Id)
 
 				if err != nil {

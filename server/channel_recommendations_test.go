@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin/plugintest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -32,37 +31,6 @@ func TestMapToSlice(t *testing.T) {
 			assert.True(t, res[i].Id <= "2")
 		}
 		assert.NotEqual(t, res[0].Id, res[1].Id)
-	})
-
-}
-
-func TestIsChannelOk(t *testing.T) {
-	t.Run("GetPostsForChannel error", func(t *testing.T) {
-		plugin, api := getErrorFuncPlugin("GetPostsForChannel", mock.Anything, mock.Anything, mock.Anything)
-		defer api.AssertExpectations(t)
-		ok := plugin.isChannelOk("")
-		assert.False(t, ok)
-	})
-	t.Run("empty channel", func(t *testing.T) {
-		api := &plugintest.API{}
-		plugin := &Plugin{}
-		posts := new(model.PostList)
-		posts.MakeNonNil()
-		api.On("GetPostsForChannel", mock.Anything, mock.Anything, mock.Anything).Return(posts, (*model.AppError)(nil))
-		plugin.SetAPI(api)
-		defer api.AssertExpectations(t)
-		ok := plugin.isChannelOk("")
-		assert.False(t, ok)
-	})
-	t.Run("no error", func(t *testing.T) {
-		api := &plugintest.API{}
-		plugin := &Plugin{}
-		posts0, _ := createMockPostList()
-		api.On("GetPostsForChannel", mock.Anything, mock.Anything, mock.Anything).Return(posts0, nil)
-		plugin.SetAPI(api)
-		defer api.AssertExpectations(t)
-		ok := plugin.isChannelOk("")
-		assert.True(t, ok)
 	})
 
 }
