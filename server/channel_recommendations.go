@@ -10,11 +10,9 @@ import (
 )
 
 func mapToSlice(m map[string]*model.Channel) []*model.Channel {
-	channels := make([]*model.Channel, len(m))
-	index := 0
+	channels := make([]*model.Channel, 0, len(m))
 	for _, channel := range m {
-		channels[index] = channel
-		index++
+		channels = append(channels, channel)
 	}
 	return channels
 }
