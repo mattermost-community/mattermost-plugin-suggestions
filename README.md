@@ -8,7 +8,7 @@ Collaborative filtering is based on user activities. Basically if user `U1` and 
 
 ## Features
 * Implementation uses simple [KNN method](http://saedsayad.com/k_nearest_neighbors_reg.htm). Later on model could be changed and could be as complicated as it needs to be.
-* Number of posts is used as the user activity score per channel. This also could be changed for more complicated model.
+* Number of posts is used as the user activity score per channel. This also could be changed for a more complicated model.
 * Suggestions are precalculated. A job is spawned in OnActivate() method which calculates suggestions daily and saves them in KVStore.
 * One can change precalculation period in the configuration.
 
@@ -19,15 +19,15 @@ Collaborative filtering is based on user activities. Basically if user `U1` and 
 
 > make
 
-`suggestions-0.1.0.tar.gz` will be generated in the `mattermost-plugin-suggestions/dist` folder. This file should be uploaded in the mattermost admin console. See details [here](https://docs.mattermost.com/administration/plugins.html#plugin-uploads)
+`suggestions-0.1.0.tar.gz` will be generated in the `mattermost-plugin-suggestions/dist` folder. This file should be uploaded in the Mattermost System Console. See details [here](https://docs.mattermost.com/administration/plugins.html#plugin-uploads)
 
 ## Usage
-Trigger of the suggestion is the slash command `/suggest channels`. Other triggers will be added later.
+Trigger the suggestion via the slash command `/suggest channels`. Other triggers may be added later.
 
 ## Future Work
 * Change user activity score and add more features.
-* Implement couple of other machine learning models
-* Collect user data, perform tests and validation, optimize parameters, improve RMSE
+* Implement other machine learning models
+* Collect user data, perform tests and validation, optimize parameters, improve Root Mean Square Error
 
 #### Nice to have methods in Mattermost Plugin API
 * `func (p *Plugin) GetAllUsers(page, perPage int) ([]*model.User, *model.AppError)`
