@@ -1,4 +1,4 @@
-module github.com/iomodo/mattermost-plugin-suggestions
+module github.com/mattermost/mattermost-plugin-suggestions
 
 go 1.12
 

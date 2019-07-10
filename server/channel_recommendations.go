@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/iomodo/mattermost-plugin-suggestions/server/ml"
+	"github.com/iomodo/mattermost-plugin-suggestions-1/server/ml"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )

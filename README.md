@@ -1,6 +1,6 @@
 # Mattermost Suggestions Plugin
-[![CircleCI](https://circleci.com/gh/iomodo/mattermost-plugin-suggestions.svg?style=svg)](https://circleci.com/gh/iomodo/mattermost-plugin-suggestions)
-[![codecov](https://codecov.io/gh/iomodo/mattermost-plugin-suggestions/branch/master/graph/badge.svg)](https://codecov.io/gh/iomodo/mattermost-plugin-suggestions)
+[![CircleCI](https://circleci.com/gh/mattermost/mattermost-plugin-suggestions.svg?style=svg)](https://circleci.com/gh/mattermost/mattermost-plugin-suggestions)
+[![codecov](https://codecov.io/gh/mattermost/mattermost-plugin-suggestions/branch/master/graph/badge.svg)](https://codecov.io/gh/mattermost/mattermost-plugin-suggestions)
 
 This plugin delivers a channel suggestions for the users using [collaborative filtering](https://en.wikipedia.org/wiki/Collaborative_filtering).
 
@@ -13,7 +13,7 @@ Collaborative filtering is based on user activities. Basically if user `U1` and 
 * One can change precalculation period in the configuration.
 
 ## Installation
-> git clone https://github.com/iomodo/mattermost-plugin-suggestions.git
+> git clone https://github.com/mattermost/mattermost-plugin-suggestions.git
 
 > cd mattermost-plugin-suggestions
 
