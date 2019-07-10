@@ -9,6 +9,8 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
+const numberOfRecommendedChannels = 5
+
 func mapToSlice(m map[string]*model.Channel) []*model.Channel {
 	channels := make([]*model.Channel, 0, len(m))
 	for _, channel := range m {
@@ -26,21 +28,26 @@ func (p *Plugin) isChannelOk(channelID string) bool {
 	return true
 }
 
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 func (p *Plugin) getChannelListFromRecommendations(recommendations []*recommendedChannel) []*model.Channel {
 	sort.Slice(recommendations, func(i, j int) bool {
 		return recommendations[i].Score > recommendations[j].Score
 	})
-	channels := make([]*model.Channel, 0)
-	for _, rec := range recommendations {
-		channel, err := p.API.GetChannel(rec.ChannelID)
+	n := min(numberOfRecommendedChannels, len(recommendations))
+	channels := make([]*model.Channel, 0, n)
+	for i := 0; i < n; i++ {
+		channel, err := p.API.GetChannel(recommendations[i].ChannelID)
 		if err != nil {
-			mlog.Error(fmt.Sprintf("Can't get channel - %v, err is %v", rec.ChannelID, err.Error()))
+			mlog.Error(fmt.Sprintf("Can't get channel - %v, err is %v", recommendations[i].ChannelID, err.Error()))
 			continue
 		}
 		channels = append(channels, channel)
-	}
-	if len(channels) > 5 {
-		channels = channels[:5]
 	}
 	return channels
 }
