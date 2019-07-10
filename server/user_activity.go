@@ -58,9 +58,8 @@ func (p *Plugin) getActivitySince(since int64) (userChannelActivity, *model.AppE
 
 func (p *Plugin) getActivityForChannel(channelID string) (userChannelActivity, *model.AppError) {
 	activity := make(userChannelActivity)
-	page := 0
 	perPage := 100
-	for {
+	for page := 0; ; page++ {
 		posts, err := p.API.GetPostsForChannel(channelID, page, perPage)
 		if err != nil {
 			return nil, err
@@ -70,7 +69,6 @@ func (p *Plugin) getActivityForChannel(channelID string) (userChannelActivity, *
 		}
 		pageActivity := getActivityFromPosts(posts, channelID)
 		activityUnion(activity, pageActivity)
-		page++
 	}
 	return activity, nil
 }

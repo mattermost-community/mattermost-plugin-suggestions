@@ -49,9 +49,8 @@ func (p *Plugin) GetAllPublicChannelsForUser(userID string) (map[string]*model.C
 		return nil, err
 	}
 	for _, team := range teams {
-		page := 0
 		perPage := 100
-		for {
+		for page := 0; ; page++ {
 			channelsForTeam, err := p.API.GetPublicChannelsForTeam(team.Id, page, perPage)
 			if err != nil {
 				return nil, err
@@ -62,7 +61,6 @@ func (p *Plugin) GetAllPublicChannelsForUser(userID string) (map[string]*model.C
 			for _, channel := range channelsForTeam {
 				allPublicChannels[channel.Id] = channel
 			}
-			page++
 		}
 	}
 	return allPublicChannels, nil
