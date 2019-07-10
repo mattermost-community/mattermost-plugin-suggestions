@@ -1,7 +1,7 @@
 {
-    "id": "suggestions",
+    "id": "mattermost-plugin-suggestions",
     "name": "Suggestions",
-    "description": "Suggestions for the Mattermost.",
+    "description": "Suggest channels to users on request.",
     "version": "0.1.0",
     "min_server_version": "5.12.0",
     "server": {
