@@ -29,6 +29,11 @@ func (p *Plugin) getActivity() (userChannelActivity, error) {
 	if err = p.saveTimestamp(timestampNow); err != nil {
 		return nil, err
 	}
+
+	if err = p.saveUserChannelActivity(activitySince); err != nil {
+		p.saveTimestamp(previousTimestamp)
+		return nil, err
+	}
 	return activitySince, nil
 }
 

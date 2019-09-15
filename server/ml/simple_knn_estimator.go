@@ -130,7 +130,7 @@ func (knn *SimpleKNN) Predict(userID, channelID string) (float64, error) {
 	}
 
 	if len(knn.channelSimilarityMatrix) < knn.k {
-		return 0, nil // TODO
+		return 0, nil // Can not predict, number of channels are too small
 	}
 	neighbors := knn.getNeighbors(channel)
 

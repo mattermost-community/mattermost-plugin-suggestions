@@ -9,6 +9,7 @@ import (
 )
 
 const numberOfRecommendedChannels = 5
+const numberOfNeighbors = 10 // TODO exact number of nearest neighbors should be determined from real data
 
 func mapToSlice(m map[string]*model.Channel) []*model.Channel {
 	channels := make([]*model.Channel, 0, len(m))
@@ -44,11 +45,12 @@ func (p *Plugin) getChannelListFromRecommendations(recommendations []*recommende
 func (p *Plugin) preCalculateRecommendations() *model.AppError {
 	mlog.Info("preCalculateRecommendations")
 
+	// get total activity of all users
 	userActivity, err := p.getActivity()
 	if err != nil {
 		return appError("Can't get user activity.", err)
 	}
-	params := map[string]interface{}{"k": 10}
+	params := map[string]interface{}{"k": numberOfNeighbors}
 	knn := ml.NewSimpleKNN(params)
 	knn.Fit(userActivity)
 	for userID := range userActivity {
