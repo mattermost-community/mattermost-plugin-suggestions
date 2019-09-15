@@ -25,7 +25,9 @@ func (p *Plugin) initStore() error {
 
 // saveUserRecommendations saves user recommendations in the KVStore.
 func (p *Plugin) saveUserRecommendations(userID string, channels []*recommendedChannel) error {
-	return p.save(userID, channels)
+	println(p.Helpers)
+	println(p.API)
+	return p.Helpers.KVSetJSON(userID, channels)
 }
 
 // retreiveUserRecomendations gets user recommendations from the KVStore.
@@ -38,7 +40,7 @@ func (p *Plugin) retreiveUserRecomendations(userID string) ([]*recommendedChanne
 // saveTimestamp saves timestamp in the KVStore.
 // All posts until this timestamp should already be analyzed.
 func (p *Plugin) saveTimestamp(time int64) error {
-	return p.save(timestampKey, time)
+	return p.Helpers.KVSetJSON(timestampKey, time)
 }
 
 // retreiveTimestamp gets timestamp from KVStore.
@@ -50,7 +52,7 @@ func (p *Plugin) retreiveTimestamp() (int64, error) {
 
 // saveUserChannelActivity saves user-channel activity in the KVStore.
 func (p *Plugin) saveUserChannelActivity(activity userChannelActivity) error {
-	return p.save(userChannelActivityKey, activity)
+	return p.Helpers.KVSetJSON(userChannelActivityKey, activity)
 }
 
 // retreiveUserChannelActivity gets user-channel activity from the KVStore.
@@ -58,19 +60,6 @@ func (p *Plugin) retreiveUserChannelActivity() (userChannelActivity, error) {
 	var act userChannelActivity
 	err := p.retreive(userChannelActivityKey, &act)
 	return act, err
-}
-
-// save method saves generic value in the KVStore
-func (p *Plugin) save(key string, value interface{}) (err error) {
-	j, err := json.Marshal(value)
-	if err != nil {
-		return err
-	}
-	appErr := p.API.KVSet(key, j)
-	if appErr != nil {
-		return appErr
-	}
-	return nil
 }
 
 // retreive method gets saved generic value from the KVStore

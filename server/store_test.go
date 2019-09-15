@@ -13,9 +13,9 @@ import (
 func TestSaveUserRecommendationsNoError(t *testing.T) {
 	assert := assert.New(t)
 	plugin := Plugin{}
-	api := &plugintest.API{}
-	api.On("KVSet", mock.Anything, mock.Anything).Return((*model.AppError)(nil))
-	plugin.SetAPI(api)
+	helpers := &plugintest.Helpers{}
+	helpers.On("KVSetJSON", mock.Anything, mock.Anything).Return((*model.AppError)(nil))
+	plugin.SetHelpers(helpers)
 	var channels []*recommendedChannel
 	err := plugin.saveUserRecommendations("randomUser", channels)
 	assert.Nil(err)
@@ -24,10 +24,9 @@ func TestSaveUserRecommendationsNoError(t *testing.T) {
 func TestSaveUserRecommendationsWithError(t *testing.T) {
 	assert := assert.New(t)
 	plugin := Plugin{}
-	api := &plugintest.API{}
-	api.On("KVSet", mock.Anything, mock.Anything).Return(model.NewAppError("", "", nil, "", 404))
-	api.On("LogError", mock.Anything, mock.Anything, mock.Anything)
-	plugin.SetAPI(api)
+	helpers := &plugintest.Helpers{}
+	helpers.On("KVSetJSON", mock.Anything, mock.Anything).Return(model.NewAppError("", "", nil, "", 404))
+	plugin.SetHelpers(helpers)
 	var channels []*recommendedChannel
 	err := plugin.saveUserRecommendations("randomUser", channels)
 	assert.NotNil(err)
@@ -37,6 +36,8 @@ func TestRetreiveUserRecomendationsNoError(t *testing.T) {
 	assert := assert.New(t)
 	plugin := Plugin{}
 	api := &plugintest.API{}
+	helpers := &plugintest.Helpers{}
+
 	channels := make([]*recommendedChannel, 1)
 
 	channels[0] = &recommendedChannel{ChannelID: "chan", Score: 0.1}
@@ -44,6 +45,8 @@ func TestRetreiveUserRecomendationsNoError(t *testing.T) {
 
 	api.On("KVGet", mock.Anything).Return(bytes, (*model.AppError)(nil))
 	plugin.SetAPI(api)
+	plugin.SetHelpers(helpers)
+
 	c, err := plugin.retreiveUserRecomendations("randomUser")
 	assert.Nil(err)
 	assert.Equal(1, len(c))
@@ -65,9 +68,9 @@ func TestRetreiveUserRecomendationsWithError(t *testing.T) {
 func TestSaveTimestampNoError(t *testing.T) {
 	assert := assert.New(t)
 	plugin := Plugin{}
-	api := &plugintest.API{}
-	api.On("KVSet", mock.Anything, mock.Anything).Return((*model.AppError)(nil))
-	plugin.SetAPI(api)
+	helpers := &plugintest.Helpers{}
+	helpers.On("KVSetJSON", mock.Anything, mock.Anything).Return((*model.AppError)(nil))
+	plugin.SetHelpers(helpers)
 	err := plugin.saveTimestamp(0)
 	assert.Nil(err)
 }
@@ -75,10 +78,9 @@ func TestSaveTimestampNoError(t *testing.T) {
 func TestSaveTimestampWithError(t *testing.T) {
 	assert := assert.New(t)
 	plugin := Plugin{}
-	api := &plugintest.API{}
-	api.On("KVSet", mock.Anything, mock.Anything).Return(model.NewAppError("", "", nil, "", 404))
-	api.On("LogError", mock.Anything, mock.Anything, mock.Anything)
-	plugin.SetAPI(api)
+	helpers := &plugintest.Helpers{}
+	helpers.On("KVSetJSON", mock.Anything, mock.Anything).Return(model.NewAppError("", "", nil, "", 404))
+	plugin.SetHelpers(helpers)
 	err := plugin.saveTimestamp(0)
 	assert.NotNil(err)
 }
@@ -115,37 +117,18 @@ func TestUserChannelActivity(t *testing.T) {
 	bytes, _ := json.Marshal(activity)
 	plugin := Plugin{}
 	api := &plugintest.API{}
+	helpers := &plugintest.Helpers{}
+
 	api.On("KVGet", userChannelActivityKey).Return(bytes, nil)
-	api.On("KVSet", userChannelActivityKey, bytes).Return(nil)
-	api.On("LogError", mock.Anything, mock.Anything, mock.Anything)
+	helpers.On("KVSetJSON", mock.Anything, mock.Anything).Return((*model.AppError)(nil))
 	plugin.SetAPI(api)
+	plugin.SetHelpers(helpers)
+
 	err := plugin.saveUserChannelActivity(activity)
 	assert.Nil(err)
 	r, err := plugin.retreiveUserChannelActivity()
 	assert.Nil(err)
 	assert.Equal(activity, r)
-}
-
-func TestSave(t *testing.T) {
-	t.Run("Marshal error", func(t *testing.T) {
-		api := &plugintest.API{}
-		plugin := Plugin{}
-		api.On("LogError", mock.Anything, mock.Anything, mock.Anything)
-		plugin.SetAPI(api)
-		err := plugin.save("key", func() { return })
-		assert.NotNil(t, err)
-	})
-
-	t.Run("No error", func(t *testing.T) {
-		api := &plugintest.API{}
-		plugin := Plugin{}
-		api.On("KVSet", "key", []byte(`{"key":100}`)).Return(nil)
-		plugin.SetAPI(api)
-		err := plugin.save("key", map[string]interface{}{
-			"key": 100,
-		})
-		assert.Nil(t, err)
-	})
 }
 
 func TestRetreive(t *testing.T) {
