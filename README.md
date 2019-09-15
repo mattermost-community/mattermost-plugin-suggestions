@@ -1,76 +1,37 @@
-# Plugin Starter Template ![CircleCI branch](https://img.shields.io/circleci/project/github/mattermost/mattermost-plugin-starter-template/master.svg)
+# Mattermost Suggestions Plugin
+[![CircleCI](https://circleci.com/gh/mattermost/mattermost-plugin-suggestions.svg?style=svg)](https://circleci.com/gh/mattermost/mattermost-plugin-suggestions)
+[![codecov](https://codecov.io/gh/mattermost/mattermost-plugin-suggestions/branch/master/graph/badge.svg)](https://codecov.io/gh/mattermost/mattermost-plugin-suggestions)
 
-This plugin serves as a starting point for writing a Mattermost plugin. Feel free to base your own plugin off this repository.
+This plugin delivers a channel suggestions for the users using [collaborative filtering](https://en.wikipedia.org/wiki/Collaborative_filtering).
 
-To learn more about plugins, see [our plugin documentation](https://developers.mattermost.com/extend/plugins/).
+Collaborative filtering is based on user activities. Basically if user `U1` and `U2` happen to be active in channels `C1`, `C2` and `C3`, and user `U3` is active in `C1` and `C2` we can suggest to the user `U3` that they will probably be active in channel `C3` as well.
 
-## Getting Started
-Use GitHub's template feature to make a copy of this repository by clicking the "Use this template" button then clone outside of `$GOPATH`.
+## Features
+* Implementation uses simple [KNN method](http://saedsayad.com/k_nearest_neighbors_reg.htm). Later on model could be changed and could be as complicated as it needs to be.
+* Number of posts is used as the user activity score per channel. This also could be changed for a more complicated model.
+* Suggestions are precalculated. A job is spawned in OnActivate() method which calculates suggestions daily and saves them in KVStore.
+* One can change precalculation period in the configuration.
 
-Alternatively shallow clone the repository to a directory outside of `$GOPATH` matching your plugin name:
-```
-git clone --depth 1 https://github.com/mattermost/mattermost-plugin-starter-template com.example.my-plugin
-```
+## Installation
+> git clone https://github.com/mattermost/mattermost-plugin-suggestions.git
 
-Note that this project uses [Go modules](https://github.com/golang/go/wiki/Modules). Be sure to locate the project outside of `$GOPATH`, or allow the use of Go modules within your `$GOPATH` with an `export GO111MODULE=on`.
+> cd mattermost-plugin-suggestions
 
-Edit `plugin.json` with your `id`, `name`, and `description`:
-```
-{
-    "id": "com.example.my-plugin",
-    "name": "My Plugin",
-    "description": "A plugin to enhance Mattermost."
-}
-```
+> make
 
-Build your plugin:
-```
-make
-```
+`suggestions-0.1.0.tar.gz` will be generated in the `mattermost-plugin-suggestions/dist` folder. This file should be uploaded in the Mattermost System Console. See details [here](https://docs.mattermost.com/administration/plugins.html#plugin-uploads)
 
-This will produce a single plugin file (with support for multiple architectures) for upload to your Mattermost server:
+## Usage
+Trigger the suggestion via the slash command `/suggest channels`. Other triggers may be added later.
 
-```
-dist/com.example.my-plugin.tar.gz
-```
+## Future Work
+* Change user activity score and add more features.
+* Implement other machine learning models
+* Collect user data, perform tests and validation, optimize parameters, improve Root Mean Square Error
 
-There is a build target to automate deploying and enabling the plugin to your server, but it requires configuration and [http](https://httpie.org/) to be installed:
-```
-export MM_SERVICESETTINGS_SITEURL=http://localhost:8065
-export MM_ADMIN_USERNAME=admin
-export MM_ADMIN_PASSWORD=password
-make deploy
-```
+#### Nice to have methods in Mattermost Plugin API
+* `func (p *Plugin) GetAllUsers(page, perPage int) ([]*model.User, *model.AppError)`
+* `func (p *Plugin) GetAllChannels(page, perPage int) ([]*model.Channel, *model.AppError)`
+* `func (p *Plugin) GetAllPublicChannelsForUser(userID string) ([]*model.Channel, *model.AppError)`
+* `func (p *Plugin) GetPostsSince(channelID string, since int64, page, perPage int) (*model.PostList, *model.AppError)`
 
-Alternatively, if you are running your `mattermost-server` out of a sibling directory by the same name, use the `deploy` target alone to  unpack the files into the right directory. You will need to restart your server and manually enable your plugin.
-
-In production, deploy and upload your plugin via the [System Console](https://about.mattermost.com/default-plugin-uploads).
-
-## Q&A
-
-### How do I make a server-only or web app-only plugin?
-
-Simply delete the `server` or `webapp` folders and remove the corresponding sections from `plugin.json`. The build scripts will skip the missing portions automatically.
-
-### How do I include assets in the plugin bundle?
-
-Place them into the `assets` directory. To use an asset at runtime, build the path to your asset and open as a regular file:
-
-```go
-bundlePath, err := p.API.GetBundlePath()
-if err != nil {
-    return errors.Wrap(err, "failed to get bundle path")
-}
-
-profileImage, err := ioutil.ReadFile(filepath.Join(bundlePath, "assets", "profile_image.png"))
-if err != nil {
-    return errors.Wrap(err, "failed to read profile image")
-}
-
-if appErr := p.API.SetProfileImage(userID, profileImage); appErr != nil {
-    return errors.Wrap(err, "failed to set profile image")
-}
-```
-
-### How do I build the plugin with unminified JavaScript?
-Use `make debug-dist` and `make debug-deploy` in place of `make dist` and `make deploy` to configure webpack to generate unminified Javascript.
