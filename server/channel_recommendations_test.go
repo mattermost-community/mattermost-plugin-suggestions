@@ -1,11 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"strconv"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin/plugintest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -37,8 +37,8 @@ func TestMapToSlice(t *testing.T) {
 
 func TestPreCalculateRecommendations(t *testing.T) {
 	t.Run("getActivity error", func(t *testing.T) {
-		plugin, api := getErrorFuncPlugin("KVGet", mock.Anything)
-		defer api.AssertExpectations(t)
+		plugin, helpers := getStoreErrorFuncPlugin("KVGetJSON", timestampKey, mock.Anything)
+		defer helpers.AssertExpectations(t)
 		err := plugin.preCalculateRecommendations()
 		assert.NotNil(t, err)
 	})
@@ -51,12 +51,12 @@ func TestPreCalculateRecommendations(t *testing.T) {
 		api.On("GetChannelsForTeamForUser", mock.Anything, mock.Anything, mock.Anything).Return(channels, nil)
 		postList, _ := createMockPostList()
 		api.On("GetPostsSince", channels[0].Id, mock.Anything).Return(postList, nil)
-		api.On("KVGet", timestampKey).Return([]byte(`0`), nil)
-		um := make(userChannelActivity)
-		um["user10"] = map[string]int64{"chan": 100}
-		j, _ := json.Marshal(um)
-		api.On("KVGet", userChannelActivityKey).Return(j, nil)
-		api.On("KVSet", mock.Anything, mock.Anything).Return(nil)
+		helpers := &plugintest.Helpers{}
+		plugin.SetHelpers(helpers)
+		helpers.On("KVGetJSON", timestampKey, mock.Anything).Return(true, nil)
+		helpers.On("KVGetJSON", userChannelActivityKey, mock.Anything).Return(true, nil)
+		helpers.On("KVSetJSON", mock.Anything, mock.Anything).Return(nil)
+
 		api.On("GetTeamsForUser", mock.Anything).Return(nil, model.NewAppError("", "", nil, "", 404))
 
 		err := plugin.preCalculateRecommendations()

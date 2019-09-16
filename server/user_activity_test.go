@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -196,66 +195,84 @@ func TestGetActivitySince(t *testing.T) {
 }
 func TestGetActivity(t *testing.T) {
 	t.Run("retreiveTimestamp error", func(t *testing.T) {
-		plugin, api := getErrorFuncPlugin("KVGet", timestampKey)
-		defer api.AssertExpectations(t)
+		plugin, helpers := getStoreErrorFuncPlugin("KVGetJSON", timestampKey, mock.Anything)
+		defer helpers.AssertExpectations(t)
 		_, err := plugin.getActivity()
 		assert.NotNil(t, err)
 	})
 	t.Run("getActivitySince error", func(t *testing.T) {
 		plugin, api := getErrorFuncPlugin("GetTeams")
-		api.On("KVGet", timestampKey).Return([]byte(`0`), nil)
 		defer api.AssertExpectations(t)
+		helpers := &plugintest.Helpers{}
+		plugin.SetHelpers(helpers)
+		defer helpers.AssertExpectations(t)
+
+		helpers.On("KVGetJSON", timestampKey, mock.Anything).Return(true, nil)
 		_, err := plugin.getActivity()
 		assert.NotNil(t, err)
 	})
 	t.Run("retreiveUserChannelActivity error", func(t *testing.T) {
 		plugin, api := getUsersInTeamPlugin()
+		defer api.AssertExpectations(t)
+		helpers := &plugintest.Helpers{}
+		plugin.SetHelpers(helpers)
+		defer helpers.AssertExpectations(t)
+
 		channels := []*model.Channel{
 			&model.Channel{Id: "channel1"},
 		}
 		api.On("GetChannelsForTeamForUser", mock.Anything, mock.Anything, mock.Anything).Return(channels, nil)
 		postList, _ := createMockPostList()
 		api.On("GetPostsSince", channels[0].Id, mock.Anything).Return(postList, nil)
-		api.On("KVGet", timestampKey).Return([]byte(`0`), nil)
-		api.On("KVGet", userChannelActivityKey).Return(nil, model.NewAppError("", "", nil, "", 404))
-		defer api.AssertExpectations(t)
+		helpers.On("KVGetJSON", timestampKey, mock.Anything).Return(true, nil)
+		helpers.On("KVGetJSON", userChannelActivityKey, mock.Anything).Return(false, model.NewAppError("", "", nil, "", 404))
 		_, err := plugin.getActivity()
 		assert.NotNil(t, err)
 	})
 
 	t.Run("saveTimestamp error", func(t *testing.T) {
 		plugin, api := getUsersInTeamPlugin()
+		defer api.AssertExpectations(t)
+		helpers := &plugintest.Helpers{}
+		plugin.SetHelpers(helpers)
+		defer helpers.AssertExpectations(t)
+
 		channels := []*model.Channel{
 			&model.Channel{Id: "channel1"},
 		}
 		api.On("GetChannelsForTeamForUser", mock.Anything, mock.Anything, mock.Anything).Return(channels, nil)
 		postList, _ := createMockPostList()
 		api.On("GetPostsSince", channels[0].Id, mock.Anything).Return(postList, nil)
-		api.On("KVGet", timestampKey).Return([]byte(`0`), nil)
-		um := make(userChannelActivity)
-		um["user10"] = map[string]int64{"chan": 100}
-		j, _ := json.Marshal(um)
-		api.On("KVGet", userChannelActivityKey).Return(j, nil)
-		api.On("KVSet", mock.Anything, mock.Anything).Return(model.NewAppError("", "", nil, "", 404))
-		defer api.AssertExpectations(t)
+		helpers.On("KVGetJSON", timestampKey, mock.Anything).Return(true, nil)
+
+		helpers.On("KVGetJSON", userChannelActivityKey, mock.Anything).Return(true, nil)
+		helpers.On("KVSetJSON", mock.Anything, mock.Anything).Return(model.NewAppError("", "", nil, "", 404))
 		_, err := plugin.getActivity()
 		assert.NotNil(t, err)
 	})
 
 	t.Run("no error", func(t *testing.T) {
 		plugin, api := getUsersInTeamPlugin()
+		defer api.AssertExpectations(t)
+		helpers := &plugintest.Helpers{}
+		plugin.SetHelpers(helpers)
+		defer helpers.AssertExpectations(t)
+
 		channels := []*model.Channel{
 			&model.Channel{Id: "channel1"},
 		}
 		api.On("GetChannelsForTeamForUser", mock.Anything, mock.Anything, mock.Anything).Return(channels, nil)
 		postList, correctActivity := createMockPostList()
 		api.On("GetPostsSince", channels[0].Id, mock.Anything).Return(postList, nil)
-		api.On("KVGet", timestampKey).Return([]byte(`0`), nil)
+		helpers.On("KVGetJSON", timestampKey, mock.Anything).Return(true, nil)
 		um := make(userChannelActivity)
 		um["user10"] = map[string]int64{"chan": 100}
-		j, _ := json.Marshal(um)
-		api.On("KVGet", userChannelActivityKey).Return(j, nil)
-		api.On("KVSet", mock.Anything, mock.Anything).Return(nil)
+		helpers.On("KVGetJSON", userChannelActivityKey, mock.Anything).Return(true, nil).Run(func(args mock.Arguments) {
+			um := args.Get(1).(*userChannelActivity)
+			*um = make(userChannelActivity)
+			(*um)["user10"] = map[string]int64{"chan": 100}
+		})
+		helpers.On("KVSetJSON", mock.Anything, mock.Anything).Return(nil)
 		activity, err := plugin.getActivity()
 		assert.Nil(t, err)
 		activityUnion(correctActivity, um)

@@ -34,6 +34,7 @@ func (p *Plugin) getChannelListFromRecommendations(recommendations []*recommende
 	channels := make([]*model.Channel, 0, n)
 	for i := 0; i < n; i++ {
 		channel, err := p.API.GetChannel(recommendations[i].ChannelID)
+		println(err)
 		if err != nil {
 			return nil, err
 		}

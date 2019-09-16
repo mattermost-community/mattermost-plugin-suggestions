@@ -179,3 +179,11 @@ func getErrorFuncPlugin(funcName string, args ...interface{}) (*Plugin, *plugint
 	plugin.SetAPI(api)
 	return plugin, api
 }
+
+func getStoreErrorFuncPlugin(funcName string, args ...interface{}) (*Plugin, *plugintest.Helpers) {
+	plugin := &Plugin{}
+	helpers := &plugintest.Helpers{}
+	helpers.On(funcName, args...).Return(false, model.NewAppError("", "", nil, "", 404))
+	plugin.SetHelpers(helpers)
+	return plugin, helpers
+}

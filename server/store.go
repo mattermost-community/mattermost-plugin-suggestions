@@ -1,9 +1,5 @@
 package main
 
-import (
-	"encoding/json"
-)
-
 const (
 	timestampKey           = "timestamp"
 	userChannelActivityKey = "userChannelActivity"
@@ -25,15 +21,13 @@ func (p *Plugin) initStore() error {
 
 // saveUserRecommendations saves user recommendations in the KVStore.
 func (p *Plugin) saveUserRecommendations(userID string, channels []*recommendedChannel) error {
-	println(p.Helpers)
-	println(p.API)
 	return p.Helpers.KVSetJSON(userID, channels)
 }
 
 // retreiveUserRecomendations gets user recommendations from the KVStore.
 func (p *Plugin) retreiveUserRecomendations(userID string) ([]*recommendedChannel, error) {
 	recommendations := make([]*recommendedChannel, 0)
-	err := p.retreive(userID, &recommendations)
+	_, err := p.Helpers.KVGetJSON(userID, &recommendations)
 	return recommendations, err
 }
 
@@ -46,7 +40,7 @@ func (p *Plugin) saveTimestamp(time int64) error {
 // retreiveTimestamp gets timestamp from KVStore.
 func (p *Plugin) retreiveTimestamp() (int64, error) {
 	var time int64
-	err := p.retreive(timestampKey, &time)
+	_, err := p.Helpers.KVGetJSON(timestampKey, &time)
 	return time, err
 }
 
@@ -58,15 +52,6 @@ func (p *Plugin) saveUserChannelActivity(activity userChannelActivity) error {
 // retreiveUserChannelActivity gets user-channel activity from the KVStore.
 func (p *Plugin) retreiveUserChannelActivity() (userChannelActivity, error) {
 	var act userChannelActivity
-	err := p.retreive(userChannelActivityKey, &act)
+	_, err := p.Helpers.KVGetJSON(userChannelActivityKey, &act)
 	return act, err
-}
-
-// retreive method gets saved generic value from the KVStore
-func (p *Plugin) retreive(key string, value interface{}) error {
-	v, err := p.API.KVGet(key)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(v, value)
 }

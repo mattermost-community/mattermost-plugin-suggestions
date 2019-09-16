@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"strings"
 	"testing"
 
@@ -119,10 +118,11 @@ func TestExecuteCommandSuggestChannels(t *testing.T) {
 	t.Run("zero channels", func(t *testing.T) {
 		text := noNewChannelsText
 		plugin, api := getPostPlugin(user, channel, text)
-		channelsZero := make([]*recommendedChannel, 0)
-		bytes, _ := json.Marshal(channelsZero)
-		api.On("KVGet", mock.Anything).Return(bytes, (*model.AppError)(nil))
 		defer api.AssertExpectations(t)
+		helpers := &plugintest.Helpers{}
+		plugin.SetHelpers(helpers)
+		helpers.On("KVGetJSON", mock.Anything, mock.Anything).Return(true, nil)
+		defer helpers.AssertExpectations(t)
 		resp, err := plugin.ExecuteCommand(nil, args)
 		assert.Nil(t, err)
 		assert.Equal(t, &model.CommandResponse{}, resp)
@@ -130,10 +130,14 @@ func TestExecuteCommandSuggestChannels(t *testing.T) {
 	t.Run("GetChannel channel error", func(t *testing.T) {
 		plugin := &Plugin{}
 		api := &plugintest.API{}
-		channels := make([]*recommendedChannel, 1)
-		channels[0] = &recommendedChannel{ChannelID: "chan", Score: 0.1}
-		bytes, _ := json.Marshal(channels)
-		api.On("KVGet", mock.Anything).Return(bytes, (*model.AppError)(nil))
+		helpers := &plugintest.Helpers{}
+		plugin.SetHelpers(helpers)
+		helpers.On("KVGetJSON", mock.Anything, mock.Anything).Return(true, nil).Run(func(args mock.Arguments) {
+			arg := args.Get(1).(*[]*recommendedChannel)
+			*arg = make([]*recommendedChannel, 1)
+			(*arg)[0] = &recommendedChannel{ChannelID: "chan", Score: 0.1}
+		})
+		defer helpers.AssertExpectations(t)
 		api.On("GetChannel", mock.Anything).Return(nil, model.NewAppError("", "", nil, "", 404))
 		plugin.SetAPI(api)
 		defer api.AssertExpectations(t)
@@ -143,28 +147,32 @@ func TestExecuteCommandSuggestChannels(t *testing.T) {
 
 	t.Run("retreive user recomendations error", func(t *testing.T) {
 		plugin := &Plugin{}
-		api := &plugintest.API{}
-		api.On("KVGet", mock.Anything).Return(nil, model.NewAppError("", "", nil, "", 404))
-		plugin.SetAPI(api)
-		defer api.AssertExpectations(t)
+		helpers := &plugintest.Helpers{}
+		plugin.SetHelpers(helpers)
+		helpers.On("KVGetJSON", mock.Anything, mock.Anything).Return(false, model.NewAppError("", "", nil, "", 404))
+		defer helpers.AssertExpectations(t)
 		_, err := plugin.ExecuteCommand(nil, args)
 		assert.NotNil(t, err)
 	})
 	t.Run("no error", func(t *testing.T) {
 		text := "Channels we recommend\n * ~highest - \n * ~CoolChannel - \n * ~CoolChannel - \n * ~CoolChannel - \n * ~CoolChannel - \n"
 		plugin, api := getPostPlugin(user, channel, text)
-		channels := make([]*recommendedChannel, 6)
-		channels[0] = &recommendedChannel{ChannelID: "chan", Score: 0.1}
-		channels[1] = &recommendedChannel{ChannelID: "chan", Score: 0.2}
-		channels[2] = &recommendedChannel{ChannelID: "chan", Score: 0.3}
-		channels[3] = &recommendedChannel{ChannelID: "chan", Score: 0.4}
-		channels[4] = &recommendedChannel{ChannelID: "highest", Score: 0.5}
-		channels[5] = &recommendedChannel{ChannelID: "chan", Score: 0.24}
-		bytes, _ := json.Marshal(channels)
-		api.On("KVGet", mock.Anything).Return(bytes, (*model.AppError)(nil))
+		helpers := &plugintest.Helpers{}
+		plugin.SetHelpers(helpers)
+		helpers.On("KVGetJSON", user, mock.Anything).Return(true, nil).Run(func(args mock.Arguments) {
+			channels := args.Get(1).(*[]*recommendedChannel)
+			*channels = make([]*recommendedChannel, 6)
+			(*channels)[0] = &recommendedChannel{ChannelID: "chan", Score: 0.1}
+			(*channels)[1] = &recommendedChannel{ChannelID: "chan", Score: 0.2}
+			(*channels)[2] = &recommendedChannel{ChannelID: "chan", Score: 0.3}
+			(*channels)[3] = &recommendedChannel{ChannelID: "chan", Score: 0.4}
+			(*channels)[4] = &recommendedChannel{ChannelID: "highest", Score: 0.5}
+			(*channels)[5] = &recommendedChannel{ChannelID: "chan", Score: 0.24}
+		})
 		api.On("GetChannel", "highest").Return(&model.Channel{Name: "highest"}, (*model.AppError)(nil))
 		api.On("GetChannel", mock.Anything).Return(&model.Channel{Name: "CoolChannel"}, (*model.AppError)(nil))
 		defer api.AssertExpectations(t)
+		defer helpers.AssertExpectations(t)
 		resp, err := plugin.ExecuteCommand(nil, args)
 		assert.Nil(t, err)
 		assert.Equal(t, &model.CommandResponse{}, resp)
@@ -173,8 +181,11 @@ func TestExecuteCommandSuggestChannels(t *testing.T) {
 
 func TestExecuteCommandReset(t *testing.T) {
 	plugin, api := getPostPlugin("user", "channel", resetText)
-	api.On("KVSet", mock.Anything, mock.Anything).Return((*model.AppError)(nil))
+	helpers := &plugintest.Helpers{}
+	plugin.SetHelpers(helpers)
+	helpers.On("KVSetJSON", mock.Anything, mock.Anything).Return((*model.AppError)(nil))
 	defer api.AssertExpectations(t)
+	defer helpers.AssertExpectations(t)
 	args := &model.CommandArgs{
 		UserId:    "user",
 		ChannelId: "channel",
