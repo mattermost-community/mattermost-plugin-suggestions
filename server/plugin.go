@@ -80,11 +80,7 @@ func (p *Plugin) startPrecalcJob() error {
 // OnActivate will be run on plugin activation.
 func (p *Plugin) OnActivate() error {
 	p.API.RegisterCommand(getCommand())
-	err := p.initStore()
-	if err != nil {
-		return err
-	}
-	err = p.setupBot(ioutil.ReadFile)
+	err := p.setupBot(ioutil.ReadFile)
 	if err != nil {
 		return err
 	}

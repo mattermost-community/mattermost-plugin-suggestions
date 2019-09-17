@@ -12,15 +12,6 @@ type recommendedChannel struct {
 	Score     float64 // score
 }
 
-// initStore method is for initializing the KVStore.
-func (p *Plugin) initStore() error { //TODO
-	err := p.saveTimestamp(-1)
-	if err != nil {
-		return err
-	}
-	return p.saveUserChannelActivity(make(userChannelActivity))
-}
-
 // saveUserRecommendations saves user recommendations in the KVStore.
 func (p *Plugin) saveUserRecommendations(userID string, channels []*recommendedChannel) error {
 	return p.Helpers.KVSetJSON(userID, channels)
@@ -42,7 +33,10 @@ func (p *Plugin) saveTimestamp(time int64) error {
 // retreiveTimestamp gets timestamp from KVStore.
 func (p *Plugin) retreiveTimestamp() (int64, error) {
 	var time int64
-	_, err := p.Helpers.KVGetJSON(timestampKey, &time)
+	exists, err := p.Helpers.KVGetJSON(timestampKey, &time)
+	if !exists {
+		time = -1
+	}
 	return time, err
 }
 
