@@ -53,8 +53,7 @@ func TestPreCalculateRecommendations(t *testing.T) {
 		api.On("GetPostsSince", channels[0].Id, mock.Anything).Return(postList, nil)
 		helpers := &plugintest.Helpers{}
 		plugin.SetHelpers(helpers)
-		helpers.On("KVGetJSON", timestampKey, mock.Anything).Return(true, nil)
-		helpers.On("KVGetJSON", userChannelActivityKey, mock.Anything).Return(true, nil)
+		helpers.On("KVGetJSON", mock.Anything, mock.Anything).Return(true, nil)
 		helpers.On("KVSetJSON", mock.Anything, mock.Anything).Return(nil)
 
 		api.On("GetTeamsForUser", mock.Anything).Return(nil, model.NewAppError("", "", nil, "", 404))

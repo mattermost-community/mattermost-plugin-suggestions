@@ -45,7 +45,9 @@ func (p *Plugin) getChannelListFromRecommendations(recommendations []*recommende
 
 func (p *Plugin) preCalculateRecommendations() *model.AppError {
 	mlog.Info("preCalculateRecommendations")
-
+	// if 1 == 1 {
+	// 	return nil
+	// }
 	// get total activity of all users
 	userActivity, err := p.getActivity()
 	if err != nil {
@@ -53,7 +55,10 @@ func (p *Plugin) preCalculateRecommendations() *model.AppError {
 	}
 	params := map[string]interface{}{"k": numberOfNeighbors}
 	knn := ml.NewSimpleKNN(params)
+	mlog.Info("start fitting")
 	knn.Fit(userActivity)
+	mlog.Info("fitting done")
+	count := 0
 	for userID := range userActivity {
 		recommendedChannels := make([]*recommendedChannel, 0)
 		channels, appErr := p.GetAllPublicChannelsForUser(userID)
@@ -78,6 +83,8 @@ func (p *Plugin) preCalculateRecommendations() *model.AppError {
 			}
 		}
 		p.saveUserRecommendations(userID, recommendedChannels)
+		count++
+		mlog.Info("users", mlog.Int("done", count))
 	}
 	return nil
 }

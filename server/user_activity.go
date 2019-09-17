@@ -2,11 +2,25 @@ package main
 
 import (
 	"time"
+	"unsafe"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
 type userChannelActivity = map[string]map[string]int64 //map[userID]map[channelID]activity
+
+func sizeof(a userChannelActivity) int {
+	size := uintptr(0)
+	for key, val := range a {
+		size += unsafe.Sizeof(key)
+		for key2, val2 := range val {
+			size += unsafe.Sizeof(key2)
+			size += unsafe.Sizeof(val2)
+		}
+	}
+	return int(size)
+}
 
 // getActivity returns user activity in channels for every user from the beginning of times.
 // For now user activity is the number of posts posted in a channel.
@@ -15,6 +29,7 @@ func (p *Plugin) getActivity() (userChannelActivity, error) {
 	if err != nil {
 		return nil, err
 	}
+	mlog.Info("getActivity", mlog.Int64("previousTimestamp", previousTimestamp))
 	timestampNow := time.Now().Unix()
 	activitySince, appErr := p.getActivitySince(previousTimestamp) // TODO what about the posts that where added between those lines?
 	if appErr != nil {
@@ -34,6 +49,8 @@ func (p *Plugin) getActivity() (userChannelActivity, error) {
 		p.saveTimestamp(previousTimestamp)
 		return nil, err
 	}
+	mlog.Info("done get activity")
+
 	return activitySince, nil
 }
 
@@ -46,6 +63,8 @@ func (p *Plugin) getActivitySince(since int64) (userChannelActivity, *model.AppE
 	if err != nil {
 		return nil, err
 	}
+	mlog.Info("getActivitySince", mlog.Int("channels", len(channels)))
+	count := 0
 	for channelID := range channels {
 		var activityForChannel userChannelActivity
 		if since == -1 {
@@ -57,6 +76,8 @@ func (p *Plugin) getActivitySince(since int64) (userChannelActivity, *model.AppE
 			return nil, err
 		}
 		activityUnion(activity, activityForChannel)
+		count++
+		mlog.Info("getActivitySince", mlog.Int("channel done", count), mlog.Int("activity", sizeof(activity)))
 	}
 	return activity, nil
 }

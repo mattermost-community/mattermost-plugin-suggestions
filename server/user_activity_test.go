@@ -225,7 +225,7 @@ func TestGetActivity(t *testing.T) {
 		postList, _ := createMockPostList()
 		api.On("GetPostsSince", channels[0].Id, mock.Anything).Return(postList, nil)
 		helpers.On("KVGetJSON", timestampKey, mock.Anything).Return(true, nil)
-		helpers.On("KVGetJSON", userChannelActivityKey, mock.Anything).Return(false, model.NewAppError("", "", nil, "", 404))
+		helpers.On("KVGetJSON", mock.Anything, mock.Anything).Return(false, model.NewAppError("", "", nil, "", 404))
 		_, err := plugin.getActivity()
 		assert.NotNil(t, err)
 	})
@@ -243,9 +243,7 @@ func TestGetActivity(t *testing.T) {
 		api.On("GetChannelsForTeamForUser", mock.Anything, mock.Anything, mock.Anything).Return(channels, nil)
 		postList, _ := createMockPostList()
 		api.On("GetPostsSince", channels[0].Id, mock.Anything).Return(postList, nil)
-		helpers.On("KVGetJSON", timestampKey, mock.Anything).Return(true, nil)
-
-		helpers.On("KVGetJSON", userChannelActivityKey, mock.Anything).Return(true, nil)
+		helpers.On("KVGetJSON", mock.Anything, mock.Anything).Return(true, nil)
 		helpers.On("KVSetJSON", mock.Anything, mock.Anything).Return(model.NewAppError("", "", nil, "", 404))
 		_, err := plugin.getActivity()
 		assert.NotNil(t, err)
@@ -267,10 +265,15 @@ func TestGetActivity(t *testing.T) {
 		helpers.On("KVGetJSON", timestampKey, mock.Anything).Return(true, nil)
 		um := make(userChannelActivity)
 		um["user10"] = map[string]int64{"chan": 100}
-		helpers.On("KVGetJSON", userChannelActivityKey, mock.Anything).Return(true, nil).Run(func(args mock.Arguments) {
-			um := args.Get(1).(*userChannelActivity)
-			*um = make(userChannelActivity)
-			(*um)["user10"] = map[string]int64{"chan": 100}
+		helpers.On("KVGetJSON", "users", mock.Anything).Return(true, nil).Run(func(args mock.Arguments) {
+			users := args.Get(1).(*[]string)
+			*users = make([]string, 1)
+			(*users)[0] = "user10"
+		})
+		helpers.On("KVGetJSON", getUserDataKey("user10"), mock.Anything).Return(true, nil).Run(func(args mock.Arguments) {
+			um := args.Get(1).(*map[string]int64)
+			*um = make(map[string]int64)
+			(*um)["chan"] = 100
 		})
 		helpers.On("KVSetJSON", mock.Anything, mock.Anything).Return(nil)
 		activity, err := plugin.getActivity()
