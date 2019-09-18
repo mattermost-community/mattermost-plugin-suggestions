@@ -1,5 +1,7 @@
 package main
 
+import "time"
+
 const (
 	timestampKey           = "timestamp"
 	userChannelActivityKey = "userChannelActivity"
@@ -32,12 +34,14 @@ func (p *Plugin) saveTimestamp(time int64) error {
 
 // retreiveTimestamp gets timestamp from KVStore.
 func (p *Plugin) retreiveTimestamp() (int64, error) {
-	var time int64
-	exists, err := p.Helpers.KVGetJSON(timestampKey, &time)
+	var timestamp int64
+	exists, err := p.Helpers.KVGetJSON(timestampKey, &timestamp)
 	if !exists {
-		time = -1
+		timeNow := time.Now()
+		before := timeNow.AddDate(-1, 0, 0) // Fetch all year-ago posts
+		timestamp = before.Unix()
 	}
-	return time, err
+	return timestamp, err
 }
 
 // saveUserChannelActivity saves every users' channel activity in the KVStore.
