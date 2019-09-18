@@ -60,7 +60,7 @@ func (p *Plugin) setupBot(reader readFile) error {
 
 func (p *Plugin) startPrecalcJob() error {
 	config := p.getConfiguration()
-	p.preCalcPeriod = "@daily" // default once a day
+	p.preCalcPeriod = "@weekly" // Run once a week, midnight between Sat/Sun
 	if config.PreCalculationPeriod != "" {
 		p.preCalcPeriod = config.PreCalculationPeriod
 	}
