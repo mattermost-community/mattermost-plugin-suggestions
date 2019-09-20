@@ -45,9 +45,6 @@ func (p *Plugin) getChannelListFromRecommendations(recommendations []*recommende
 
 func (p *Plugin) preCalculateRecommendations() *model.AppError {
 	mlog.Info("preCalculateRecommendations")
-	// if 1 == 1 {
-	// 	return nil
-	// }
 	// get total activity of all users
 	userActivity, err := p.getActivity()
 	if err != nil {

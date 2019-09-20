@@ -66,8 +66,13 @@ func (p *Plugin) startPrecalcJob() error {
 	}
 	c := cron.New()
 	if err := c.AddFunc(p.preCalcPeriod, func() {
-		if appErr := p.preCalculateRecommendations(); appErr != nil {
-			mlog.Error("Can't calculate recommendations", mlog.Err(appErr))
+		err := p.RunOnSingleNode(func() {
+			if appErr := p.preCalculateRecommendations(); appErr != nil {
+				mlog.Error("Can't calculate recommendations", mlog.Err(appErr))
+			}
+		})
+		if err != nil {
+			mlog.Error("Can't run on single node", mlog.Err(err))
 		}
 	}); err != nil {
 		return err

@@ -90,3 +90,16 @@ func (p *Plugin) getTeamUsers() (map[string][]*model.User, *model.AppError) {
 	}
 	return teamUsers, nil
 }
+
+// RunOnSingleNode will run function f on only a single node in a HA environment
+func (p *Plugin) RunOnSingleNode(f func()) error {
+	ok, err := p.Helpers.KVCompareAndSetJSON("RunOnSingleNode", nil, 0)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		f()
+	}
+	p.Helpers.KVCompareAndSetJSON("RunOnSingleNode", 0, nil) //TODO what to do if not saved?
+	return nil
+}
