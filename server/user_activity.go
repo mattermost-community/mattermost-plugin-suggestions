@@ -4,7 +4,6 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -29,9 +28,8 @@ func (p *Plugin) getActivity() (userChannelActivity, error) {
 	if err != nil {
 		return nil, err
 	}
-	mlog.Info("getActivity", mlog.Int64("previousTimestamp", previousTimestamp))
 	timestampNow := time.Now().Unix()
-	activitySince, appErr := p.getActivitySince(previousTimestamp) // TODO what about the posts that where added between those lines?
+	activitySince, appErr := p.getActivitySince(previousTimestamp)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -49,7 +47,6 @@ func (p *Plugin) getActivity() (userChannelActivity, error) {
 		p.saveTimestamp(previousTimestamp)
 		return nil, err
 	}
-	mlog.Info("done get activity")
 
 	return activitySince, nil
 }
@@ -63,7 +60,6 @@ func (p *Plugin) getActivitySince(since int64) (userChannelActivity, *model.AppE
 	if err != nil {
 		return nil, err
 	}
-	mlog.Info("getActivitySince", mlog.Int("channels", len(channels)))
 	count := 0
 	for channelID := range channels {
 		var activityForChannel userChannelActivity
@@ -77,7 +73,6 @@ func (p *Plugin) getActivitySince(since int64) (userChannelActivity, *model.AppE
 		}
 		activityUnion(activity, activityForChannel)
 		count++
-		mlog.Info("getActivitySince", mlog.Int("channel done", count), mlog.Int("activity", sizeof(activity)))
 	}
 	return activity, nil
 }

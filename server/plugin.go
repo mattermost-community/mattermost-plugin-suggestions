@@ -94,8 +94,13 @@ func (p *Plugin) OnActivate() error {
 		return err
 	}
 	go func() { //precalculate at once
-		if err := p.preCalculateRecommendations(); err != nil {
-			mlog.Error("Can't calculate recommendations", mlog.Err(err))
+		err := p.RunOnSingleNode(func() {
+			if appErr := p.preCalculateRecommendations(); appErr != nil {
+				mlog.Error("Can't calculate recommendations", mlog.Err(appErr))
+			}
+		})
+		if err != nil {
+			mlog.Error("Can't run on single node", mlog.Err(err))
 		}
 	}()
 	return nil
