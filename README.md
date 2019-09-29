@@ -1,6 +1,4 @@
 # Mattermost Suggestions Plugin
-[![CircleCI](https://circleci.com/gh/mattermost/mattermost-plugin-suggestions.svg?style=svg)](https://circleci.com/gh/mattermost/mattermost-plugin-suggestions)
-[![codecov](https://codecov.io/gh/mattermost/mattermost-plugin-suggestions/branch/master/graph/badge.svg)](https://codecov.io/gh/mattermost/mattermost-plugin-suggestions)
 
 This plugin delivers a channel suggestions for the users using [collaborative filtering](https://en.wikipedia.org/wiki/Collaborative_filtering).
 
