@@ -145,7 +145,7 @@ func TestExecuteCommandSuggestChannels(t *testing.T) {
 		assert.NotNil(t, err)
 	})
 
-	t.Run("retreive user recomendations error", func(t *testing.T) {
+	t.Run("retreive user recommendations error", func(t *testing.T) {
 		plugin := &Plugin{}
 		helpers := &plugintest.Helpers{}
 		plugin.SetHelpers(helpers)

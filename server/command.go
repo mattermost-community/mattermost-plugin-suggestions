@@ -20,7 +20,7 @@ const (
 	noNewChannelsText    = "No new channels for you."
 	addRandomChannelText = "Channel was successfully added."
 	resetText            = "Recommendations were cleared."
-	computeText          = "Recomendations were computed."
+	computeText          = "Recommendations were computed."
 )
 
 const commandHelp = `
@@ -64,7 +64,7 @@ func appError(message string, err error) *model.AppError {
 }
 
 func (p *Plugin) suggestChannelResponse(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	recommendations, err := p.retreiveUserRecomendations(args.UserId)
+	recommendations, err := p.retreiveUserRecommendations(args.UserId)
 	if err != nil {
 		return nil, appError("Can't retreive user recommendations.", err)
 	}

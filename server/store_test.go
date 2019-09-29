@@ -31,7 +31,7 @@ func TestSaveUserRecommendationsWithError(t *testing.T) {
 	assert.NotNil(err)
 }
 
-func TestRetreiveUserRecomendationsNoError(t *testing.T) {
+func TestRetreiveUserRecommendationsNoError(t *testing.T) {
 	assert := assert.New(t)
 	plugin := Plugin{}
 	helpers := &plugintest.Helpers{}
@@ -39,17 +39,17 @@ func TestRetreiveUserRecomendationsNoError(t *testing.T) {
 	helpers.On("KVGetJSON", "randomUser", mock.Anything).Return(true, (*model.AppError)(nil))
 	plugin.SetHelpers(helpers)
 
-	_, err := plugin.retreiveUserRecomendations("randomUser")
+	_, err := plugin.retreiveUserRecommendations("randomUser")
 	assert.Nil(err)
 }
 
-func TestRetreiveUserRecomendationsWithError(t *testing.T) {
+func TestRetreiveUserRecommendationsWithError(t *testing.T) {
 	assert := assert.New(t)
 	plugin := Plugin{}
 	helpers := &plugintest.Helpers{}
 	helpers.On("KVGetJSON", "randomUser", mock.Anything).Return(false, model.NewAppError("", "", nil, "", 404))
 	plugin.SetHelpers(helpers)
-	_, err := plugin.retreiveUserRecomendations("randomUser")
+	_, err := plugin.retreiveUserRecommendations("randomUser")
 	assert.NotNil(err)
 }
 

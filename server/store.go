@@ -19,8 +19,8 @@ func (p *Plugin) saveUserRecommendations(userID string, channels []*recommendedC
 	return p.Helpers.KVSetJSON(userID, channels)
 }
 
-// retreiveUserRecomendations gets user recommendations from the KVStore.
-func (p *Plugin) retreiveUserRecomendations(userID string) ([]*recommendedChannel, error) {
+// retreiveUserRecommendations gets user recommendations from the KVStore.
+func (p *Plugin) retreiveUserRecommendations(userID string) ([]*recommendedChannel, error) {
 	recommendations := make([]*recommendedChannel, 0)
 	_, err := p.Helpers.KVGetJSON(userID, &recommendations)
 	return recommendations, err
