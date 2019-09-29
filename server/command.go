@@ -78,7 +78,10 @@ func (p *Plugin) suggestChannelResponse(args *model.CommandArgs) (*model.Command
 	}
 	text := "Channels we recommend\n"
 	for _, channel := range channels {
-		text += " * ~" + channel.Name + " - " + channel.Purpose + "\n"
+		text += " * ~" + channel.Name
+		if channel.Purpose != "" {
+			text += " - " + channel.Purpose + "\n"
+		}
 	}
 	p.postCommandResponse(args, text)
 	return &model.CommandResponse{}, nil
