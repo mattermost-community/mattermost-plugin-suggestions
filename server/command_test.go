@@ -44,6 +44,9 @@ func TestPostCommandResponse(t *testing.T) {
 }
 
 func TestExecuteCommandTrivial(t *testing.T) {
+	const user = "user"
+	const channel = "channel"
+
 	t.Run("empty command", func(t *testing.T) {
 		plugin := Plugin{}
 		args := &model.CommandArgs{
@@ -75,8 +78,6 @@ func TestExecuteCommandTrivial(t *testing.T) {
 	})
 
 	t.Run("suggest command, empty action", func(t *testing.T) {
-		user := "user"
-		channel := "channel"
 		text := "###### " + desc + " - Slash Command Help\n" + strings.Replace(commandHelp, "|", "`", -1)
 		plugin, api := getPostPlugin(user, channel, text)
 		defer api.AssertExpectations(t)
@@ -91,8 +92,6 @@ func TestExecuteCommandTrivial(t *testing.T) {
 	})
 
 	t.Run("suggest command, help action", func(t *testing.T) {
-		user := "user"
-		channel := "channel"
 		text := "###### " + desc + " - Slash Command Help\n" + strings.Replace(commandHelp, "|", "`", -1)
 		plugin, api := getPostPlugin(user, channel, text)
 		defer api.AssertExpectations(t)
@@ -145,7 +144,7 @@ func TestExecuteCommandSuggestChannels(t *testing.T) {
 		assert.NotNil(t, err)
 	})
 
-	t.Run("retreive user recommendations error", func(t *testing.T) {
+	t.Run("retrieve user recommendations error", func(t *testing.T) {
 		plugin := &Plugin{}
 		helpers := &plugintest.Helpers{}
 		plugin.SetHelpers(helpers)
@@ -155,7 +154,7 @@ func TestExecuteCommandSuggestChannels(t *testing.T) {
 		assert.NotNil(t, err)
 	})
 	t.Run("no error", func(t *testing.T) {
-		text := "Channels we recommend\n * ~highest - \n * ~CoolChannel - \n * ~CoolChannel - \n * ~CoolChannel - \n * ~CoolChannel - \n"
+		text := "Channels we recommend\n * ~highest\n * ~CoolChannel\n * ~CoolChannel\n * ~CoolChannel\n * ~CoolChannel\n"
 		plugin, api := getPostPlugin(user, channel, text)
 		helpers := &plugintest.Helpers{}
 		plugin.SetHelpers(helpers)

@@ -31,7 +31,7 @@ func TestSaveUserRecommendationsWithError(t *testing.T) {
 	assert.NotNil(err)
 }
 
-func TestRetreiveUserRecommendationsNoError(t *testing.T) {
+func TestRetrieveUserRecommendationsNoError(t *testing.T) {
 	assert := assert.New(t)
 	plugin := Plugin{}
 	helpers := &plugintest.Helpers{}
@@ -39,17 +39,17 @@ func TestRetreiveUserRecommendationsNoError(t *testing.T) {
 	helpers.On("KVGetJSON", "randomUser", mock.Anything).Return(true, (*model.AppError)(nil))
 	plugin.SetHelpers(helpers)
 
-	_, err := plugin.retreiveUserRecommendations("randomUser")
+	_, err := plugin.retrieveUserRecommendations("randomUser")
 	assert.Nil(err)
 }
 
-func TestRetreiveUserRecommendationsWithError(t *testing.T) {
+func TestRetrieveUserRecommendationsWithError(t *testing.T) {
 	assert := assert.New(t)
 	plugin := Plugin{}
 	helpers := &plugintest.Helpers{}
 	helpers.On("KVGetJSON", "randomUser", mock.Anything).Return(false, model.NewAppError("", "", nil, "", 404))
 	plugin.SetHelpers(helpers)
-	_, err := plugin.retreiveUserRecommendations("randomUser")
+	_, err := plugin.retrieveUserRecommendations("randomUser")
 	assert.NotNil(err)
 }
 
@@ -73,23 +73,23 @@ func TestSaveTimestampWithError(t *testing.T) {
 	assert.NotNil(err)
 }
 
-func TestRetreiveTimestampNoError(t *testing.T) {
+func TestRetrieveTimestampNoError(t *testing.T) {
 	assert := assert.New(t)
 	plugin := Plugin{}
 	helpers := &plugintest.Helpers{}
 	helpers.On("KVGetJSON", timestampKey, mock.Anything).Return(true, (*model.AppError)(nil))
 	plugin.SetHelpers(helpers)
 
-	_, err := plugin.retreiveTimestamp()
+	_, err := plugin.retrieveTimestamp()
 	assert.Nil(err)
 }
 
-func TestRetreiveTimestampWithError(t *testing.T) {
+func TestRetrieveTimestampWithError(t *testing.T) {
 	assert := assert.New(t)
 	plugin := Plugin{}
 	helpers := &plugintest.Helpers{}
 	helpers.On("KVGetJSON", timestampKey, mock.Anything).Return(false, model.NewAppError("", "", nil, "", 404))
 	plugin.SetHelpers(helpers)
-	_, err := plugin.retreiveTimestamp()
+	_, err := plugin.retrieveTimestamp()
 	assert.NotNil(err)
 }

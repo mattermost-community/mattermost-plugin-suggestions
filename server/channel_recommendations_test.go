@@ -37,8 +37,16 @@ func TestMapToSlice(t *testing.T) {
 
 func TestPreCalculateRecommendations(t *testing.T) {
 	t.Run("getActivity error", func(t *testing.T) {
-		plugin, helpers := getStoreErrorFuncPlugin("KVGetJSON", timestampKey, mock.Anything)
+		// plugin, helpers := getStoreErrorFuncPlugin("KVGetJSON", timestampKey, mock.Anything)
+		plugin := &Plugin{}
+		helpers := &plugintest.Helpers{}
+		helpers.On("KVGetJSON", timestampKey, mock.Anything).Return(false, model.NewAppError("", "", nil, "", 404))
+		api := &plugintest.API{}
+		api.On("LogInfo", "preCalculateRecommendations").Return()
+		plugin.SetAPI(api)
+		plugin.SetHelpers(helpers)
 		defer helpers.AssertExpectations(t)
+		defer api.AssertExpectations(t)
 		err := plugin.preCalculateRecommendations()
 		assert.NotNil(t, err)
 	})
@@ -57,6 +65,7 @@ func TestPreCalculateRecommendations(t *testing.T) {
 		helpers.On("KVSetJSON", mock.Anything, mock.Anything).Return(nil)
 
 		api.On("GetTeamsForUser", mock.Anything).Return(nil, model.NewAppError("", "", nil, "", 404))
+		api.On("LogInfo", "preCalculateRecommendations").Return()
 
 		err := plugin.preCalculateRecommendations()
 		assert.NotNil(t, err)

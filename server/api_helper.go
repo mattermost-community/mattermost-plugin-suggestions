@@ -1,26 +1,13 @@
 package main
 
 import (
+	"time"
+
 	"github.com/mattermost/mattermost-server/model"
 )
 
-// GetAllUsers returns all users
-func (p *Plugin) GetAllUsers() (map[string]*model.User, *model.AppError) {
-	allUsers := make(map[string]*model.User)
-	teamUsers, err := p.getTeamUsers()
-	if err != nil {
-		return nil, err
-	}
-	for _, users := range teamUsers {
-		for _, user := range users {
-			allUsers[user.Id] = user
-		}
-	}
-	return allUsers, nil
-}
-
 // GetAllChannels returns all channels
-func (p *Plugin) GetAllChannels() (map[string]*model.Channel, *model.AppError) {
+func (p *Plugin) GetAllChannels() ([]*model.Channel, *model.AppError) {
 	allChannels := make(map[string]*model.Channel)
 	teamUsers, err := p.getTeamUsers()
 	if err != nil {
@@ -37,11 +24,11 @@ func (p *Plugin) GetAllChannels() (map[string]*model.Channel, *model.AppError) {
 			}
 		}
 	}
-	return allChannels, nil
+	return convertMapToSlice(allChannels), nil
 }
 
 // GetAllPublicChannelsForUser returns all public channels for user
-func (p *Plugin) GetAllPublicChannelsForUser(userID string) (map[string]*model.Channel, *model.AppError) {
+func (p *Plugin) GetAllPublicChannelsForUser(userID string) ([]*model.Channel, *model.AppError) {
 	allPublicChannels := make(map[string]*model.Channel)
 	teams, err := p.API.GetTeamsForUser(userID)
 
@@ -63,7 +50,7 @@ func (p *Plugin) GetAllPublicChannelsForUser(userID string) (map[string]*model.C
 			}
 		}
 	}
-	return allPublicChannels, nil
+	return convertMapToSlice(allPublicChannels), nil
 }
 
 // getTeamUsers returns slice of users for every team
@@ -92,14 +79,37 @@ func (p *Plugin) getTeamUsers() (map[string][]*model.User, *model.AppError) {
 }
 
 // RunOnSingleNode will run function f on only a single node in a HA environment
+// Method behaves asynchronously on the other nodes and will return without waiting f()
 func (p *Plugin) RunOnSingleNode(f func()) error {
-	ok, err := p.Helpers.KVCompareAndSetJSON("RunOnSingleNode", nil, 0)
+	runOnSingleNodeKey := "RunOnSingleNode"
+	expire := 10 * 60 * 1000 // 10 minutes
+	var savedTime int64
+	ok, err := p.Helpers.KVGetJSON(runOnSingleNodeKey, &savedTime)
 	if err != nil {
 		return err
 	}
-	if !ok {
-		f()
+	if ok {
+		if time.Now().Unix()-savedTime < int64(expire) {
+			return nil
+		}
+		p.Helpers.KVSetJSON(runOnSingleNodeKey, nil)
 	}
-	p.Helpers.KVCompareAndSetJSON("RunOnSingleNode", 0, nil) //TODO what to do if not saved?
+	timeNow := time.Now().Unix()
+	ok, err = p.Helpers.KVCompareAndSetJSON(runOnSingleNodeKey, nil, timeNow)
+	if err != nil {
+		return err
+	}
+	if ok { // ok will be true only for the single node
+		f()
+		p.Helpers.KVCompareAndSetJSON("RunOnSingleNode", timeNow, nil)
+	}
 	return nil
+}
+
+func convertMapToSlice(channelsMap map[string]*model.Channel) []*model.Channel {
+	channels := make([]*model.Channel, 0, len(channelsMap))
+	for _, channel := range channelsMap {
+		channels = append(channels, channel)
+	}
+	return channels
 }

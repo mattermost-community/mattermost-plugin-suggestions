@@ -10,36 +10,39 @@ type Item struct {
 	priority float64
 }
 
-// A MaxHeapK implements heap.Interface and holds k Items with highest priority
+// A MaxHeapK implements heap.Interface.
 type MaxHeapK struct {
-	elem []*Item
-	k    int
+	elements []*Item
+	k        int
 }
 
-// NewMaxHeapK returns a brand new max heap with capacity k
+// NewMaxHeapK returns a brand new max heap with capacity k.
 func NewMaxHeapK(k int) *MaxHeapK {
 	mh := new(MaxHeapK)
 	mh.k = k
-	mh.elem = make([]*Item, 0, k)
+	mh.elements = make([]*Item, 0, k)
 	return mh
 }
 
-func (pq MaxHeapK) Len() int { return len(pq.elem) }
+// Len returns number of elements in a heap
+func (pq MaxHeapK) Len() int { return len(pq.elements) }
 
+// Less implements comparison function for a heap
 func (pq MaxHeapK) Less(i, j int) bool {
-	return pq.elem[i].priority < pq.elem[j].priority
+	return pq.elements[i].priority < pq.elements[j].priority
 }
 
+// Swap swaps two elements of a heap
 func (pq MaxHeapK) Swap(i, j int) {
-	pq.elem[i], pq.elem[j] = pq.elem[j], pq.elem[i]
+	pq.elements[i], pq.elements[j] = pq.elements[j], pq.elements[i]
 }
 
-// Push method pushes an item into the PQ
+// Push method pushes an item into the PQ.
 func (pq *MaxHeapK) Push(x interface{}) {
-	pq.elem = append(pq.elem, x.(*Item))
+	pq.elements = append(pq.elements, x.(*Item))
 }
 
-// Add method adds element into the PQ
+// Add method adds element into the PQ.
 func (pq *MaxHeapK) Add(x interface{}) {
 	heap.Push(pq, x)
 	if pq.Len() > pq.k {
@@ -47,11 +50,11 @@ func (pq *MaxHeapK) Add(x interface{}) {
 	}
 }
 
-// Pop method pops item of hightest priority from the PQ
+// Pop method pops item of hightest priority from the PQ.
 func (pq *MaxHeapK) Pop() interface{} {
-	old := pq.elem
+	old := pq.elements
 	n := len(old)
 	item := old[n-1]
-	pq.elem = old[0 : n-1]
+	pq.elements = old[0 : n-1]
 	return item
 }

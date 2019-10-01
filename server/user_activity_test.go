@@ -194,7 +194,7 @@ func TestGetActivitySince(t *testing.T) {
 	})
 }
 func TestGetActivity(t *testing.T) {
-	t.Run("retreiveTimestamp error", func(t *testing.T) {
+	t.Run("retrieveTimestamp error", func(t *testing.T) {
 		plugin, helpers := getStoreErrorFuncPlugin("KVGetJSON", timestampKey, mock.Anything)
 		defer helpers.AssertExpectations(t)
 		_, err := plugin.getActivity()
@@ -211,7 +211,7 @@ func TestGetActivity(t *testing.T) {
 		_, err := plugin.getActivity()
 		assert.NotNil(t, err)
 	})
-	t.Run("retreiveUserChannelActivity error", func(t *testing.T) {
+	t.Run("retrieveUserChannelActivity error", func(t *testing.T) {
 		plugin, api := getUsersInTeamPlugin()
 		defer api.AssertExpectations(t)
 		helpers := &plugintest.Helpers{}

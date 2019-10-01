@@ -9,7 +9,6 @@ const defaultK = 10
 
 // SimpleKNN struct
 type SimpleKNN struct {
-	params                  map[string]interface{}
 	channelSimilarityMatrix [][]float64
 	activityMatrix          [][]float64
 	userIndexes             map[string]int
@@ -141,7 +140,7 @@ func (knn *SimpleKNN) Predict(userID, channelID string) (float64, error) {
 		sum += knn.channelSimilarityMatrix[channel][neighbors[i]]
 	}
 	if sum != 0 {
-		score = score / sum
+		score /= sum
 	}
 	return score, nil
 }

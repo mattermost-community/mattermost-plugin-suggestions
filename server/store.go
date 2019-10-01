@@ -3,10 +3,9 @@ package main
 import "time"
 
 const (
-	timestampKey           = "timestamp"
-	userChannelActivityKey = "userChannelActivity"
-	userDataKeyAddon       = "_data"
-	userListKey            = "users"
+	timestampKey     = "timestamp"
+	userDataKeyAddon = "_data"
+	userListKey      = "users"
 )
 
 type recommendedChannel struct {
@@ -19,8 +18,8 @@ func (p *Plugin) saveUserRecommendations(userID string, channels []*recommendedC
 	return p.Helpers.KVSetJSON(userID, channels)
 }
 
-// retreiveUserRecommendations gets user recommendations from the KVStore.
-func (p *Plugin) retreiveUserRecommendations(userID string) ([]*recommendedChannel, error) {
+// retrieveUserRecommendations gets user recommendations from the KVStore.
+func (p *Plugin) retrieveUserRecommendations(userID string) ([]*recommendedChannel, error) {
 	recommendations := make([]*recommendedChannel, 0)
 	_, err := p.Helpers.KVGetJSON(userID, &recommendations)
 	return recommendations, err
@@ -32,8 +31,8 @@ func (p *Plugin) saveTimestamp(time int64) error {
 	return p.Helpers.KVSetJSON(timestampKey, time)
 }
 
-// retreiveTimestamp gets timestamp from KVStore.
-func (p *Plugin) retreiveTimestamp() (int64, error) {
+// retrieveTimestamp gets timestamp from KVStore.
+func (p *Plugin) retrieveTimestamp() (int64, error) {
 	var timestamp int64
 	exists, err := p.Helpers.KVGetJSON(timestampKey, &timestamp)
 	if !exists {
@@ -56,8 +55,8 @@ func (p *Plugin) saveUserChannelActivity(activity userChannelActivity) error {
 	return p.Helpers.KVSetJSON(userListKey, users)
 }
 
-// retreiveUserChannelActivity gets every users' channel activity from the KVStore.
-func (p *Plugin) retreiveUserChannelActivity() (userChannelActivity, error) {
+// retrieveUserChannelActivity gets every users' channel activity from the KVStore.
+func (p *Plugin) retrieveUserChannelActivity() (userChannelActivity, error) {
 	var users []string
 	if _, err := p.Helpers.KVGetJSON(userListKey, &users); err != nil {
 		return nil, err

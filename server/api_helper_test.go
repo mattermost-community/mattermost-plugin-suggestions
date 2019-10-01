@@ -9,27 +9,6 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestGetAllUsers(t *testing.T) {
-	t.Run("getTeamUsers error", func(t *testing.T) {
-		plugin, api := getErrorFuncPlugin("GetTeams")
-		defer api.AssertExpectations(t)
-		_, err := plugin.GetAllUsers()
-		assert.NotNil(t, err)
-	})
-
-	t.Run("No error", func(t *testing.T) {
-		correctUsers := map[string]*model.User{
-			"userID1": &model.User{Id: "userID1"},
-			"userID2": &model.User{Id: "userID2"},
-		}
-		plugin, api := getUsersInTeamPlugin()
-		defer api.AssertExpectations(t)
-		users, err := plugin.GetAllUsers()
-		assert.Nil(t, err)
-		assert.Equal(t, correctUsers, users)
-	})
-}
-
 func TestGetAllChannels(t *testing.T) {
 	t.Run("getTeamUsers error", func(t *testing.T) {
 		plugin, api := getErrorFuncPlugin("GetTeams")
@@ -52,15 +31,15 @@ func TestGetAllChannels(t *testing.T) {
 			&model.Channel{Id: "Id1"},
 			&model.Channel{Id: "Id2"},
 		}
-		correctChannels := map[string]*model.Channel{
-			"Id1": channels[0],
-			"Id2": channels[1],
+		correctChannels := []*model.Channel{
+			channels[0],
+			channels[1],
 		}
 		api.On("GetChannelsForTeamForUser", mock.Anything, mock.Anything, mock.Anything).Return(channels, nil)
 		defer api.AssertExpectations(t)
 		res, err := plugin.GetAllChannels()
 		assert.Nil(t, err)
-		assert.Equal(t, correctChannels, res)
+		assert.ElementsMatch(t, correctChannels, res)
 	})
 }
 
@@ -144,13 +123,13 @@ func TestGetAllPublicChannelsForUser(t *testing.T) {
 		plugin.SetAPI(api)
 		defer api.AssertExpectations(t)
 
-		correctChannels := map[string]*model.Channel{
-			"channelId1": teamChannels[0],
-			"channelId2": teamChannels[1],
+		correctChannels := []*model.Channel{
+			teamChannels[0],
+			teamChannels[1],
 		}
 		res, err := plugin.GetAllPublicChannelsForUser("")
 		assert.Nil(t, err)
-		assert.Equal(t, correctChannels, res)
+		assert.ElementsMatch(t, correctChannels, res)
 	})
 }
 

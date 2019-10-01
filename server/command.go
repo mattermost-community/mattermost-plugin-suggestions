@@ -9,18 +9,16 @@ import (
 )
 
 const (
-	trigger                = "suggest"
-	channelAction          = "channels"
-	addRandomChannelAction = "add"
-	resetAction            = "reset"
-	computeAction          = "compute"
+	trigger       = "suggest"
+	channelAction = "channels"
+	resetAction   = "reset"
+	computeAction = "compute"
 
-	displayName          = "Suggestions"
-	desc                 = "Mattermost Suggestions Plugin"
-	noNewChannelsText    = "No new channels for you."
-	addRandomChannelText = "Channel was successfully added."
-	resetText            = "Recommendations were cleared."
-	computeText          = "Recommendations were computed."
+	displayName       = "Suggestions"
+	desc              = "Mattermost Suggestions Plugin"
+	noNewChannelsText = "No new channels for you."
+	resetText         = "Recommendations were cleared."
+	computeText       = "Recommendations were computed."
 )
 
 const commandHelp = `
@@ -64,9 +62,9 @@ func appError(message string, err error) *model.AppError {
 }
 
 func (p *Plugin) suggestChannelResponse(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	recommendations, err := p.retreiveUserRecommendations(args.UserId)
+	recommendations, err := p.retrieveUserRecommendations(args.UserId)
 	if err != nil {
-		return nil, appError("Can't retreive user recommendations.", err)
+		return nil, appError("can't retrieve user recommendations", err)
 	}
 	channels, appErr := p.getChannelListFromRecommendations(recommendations)
 	if appErr != nil {
@@ -80,8 +78,9 @@ func (p *Plugin) suggestChannelResponse(args *model.CommandArgs) (*model.Command
 	for _, channel := range channels {
 		text += " * ~" + channel.Name
 		if channel.Purpose != "" {
-			text += " - " + channel.Purpose + "\n"
+			text += " - " + channel.Purpose
 		}
+		text += "\n"
 	}
 	p.postCommandResponse(args, text)
 	return &model.CommandResponse{}, nil

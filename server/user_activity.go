@@ -2,29 +2,16 @@ package main
 
 import (
 	"time"
-	"unsafe"
 
 	"github.com/mattermost/mattermost-server/model"
 )
 
 type userChannelActivity = map[string]map[string]int64 //map[userID]map[channelID]activity
 
-func sizeof(a userChannelActivity) int {
-	size := uintptr(0)
-	for key, val := range a {
-		size += unsafe.Sizeof(key)
-		for key2, val2 := range val {
-			size += unsafe.Sizeof(key2)
-			size += unsafe.Sizeof(val2)
-		}
-	}
-	return int(size)
-}
-
 // getActivity returns user activity in channels for every user from the beginning of times.
 // For now user activity is the number of posts posted in a channel.
 func (p *Plugin) getActivity() (userChannelActivity, error) {
-	previousTimestamp, err := p.retreiveTimestamp()
+	previousTimestamp, err := p.retrieveTimestamp()
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +20,7 @@ func (p *Plugin) getActivity() (userChannelActivity, error) {
 	if appErr != nil {
 		return nil, appErr
 	}
-	activityUntil, err := p.retreiveUserChannelActivity()
+	activityUntil, err := p.retrieveUserChannelActivity()
 	if err != nil {
 		return nil, err
 	}
@@ -61,12 +48,12 @@ func (p *Plugin) getActivitySince(since int64) (userChannelActivity, *model.AppE
 		return nil, err
 	}
 	count := 0
-	for channelID := range channels {
+	for _, channel := range channels {
 		var activityForChannel userChannelActivity
 		if since == -1 {
-			activityForChannel, err = p.getActivityForChannel(channelID)
+			activityForChannel, err = p.getActivityForChannel(channel.Id)
 		} else {
-			activityForChannel, err = p.getActivityForChannelSince(channelID, since)
+			activityForChannel, err = p.getActivityForChannelSince(channel.Id, since)
 		}
 		if err != nil {
 			return nil, err

@@ -5,11 +5,10 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/pkg/errors"
-	"github.com/robfig/cron"
+	"github.com/robfig/cron/v3"
 )
 
 // Plugin implements the interface expected by the Mattermost server to communicate between the server and plugin processes.
@@ -60,21 +59,19 @@ func (p *Plugin) setupBot(reader readFile) error {
 
 func (p *Plugin) startPrecalcJob() error {
 	config := p.getConfiguration()
-	p.preCalcPeriod = "@weekly" // Run once a week, midnight between Sat/Sun
-	if config.PreCalculationPeriod != "" {
-		p.preCalcPeriod = config.PreCalculationPeriod
-	}
+	p.preCalcPeriod = config.PreCalculationPeriod
 	c := cron.New()
-	if err := c.AddFunc(p.preCalcPeriod, func() {
+	_, err := c.AddFunc(p.preCalcPeriod, func() {
 		err := p.RunOnSingleNode(func() {
 			if appErr := p.preCalculateRecommendations(); appErr != nil {
-				mlog.Error("Can't calculate recommendations", mlog.Err(appErr))
+				p.API.LogError("Can't calculate recommendations", "error", appErr)
 			}
 		})
 		if err != nil {
-			mlog.Error("Can't run on single node", mlog.Err(err))
+			p.API.LogError("Can't run on single node", "error", err)
 		}
-	}); err != nil {
+	})
+	if err != nil {
 		return err
 	}
 	c.Start()
@@ -89,18 +86,17 @@ func (p *Plugin) OnActivate() error {
 	if err != nil {
 		return err
 	}
-	err = p.startPrecalcJob()
-	if err != nil {
-		return err
+	if err = p.startPrecalcJob(); err != nil {
+		return errors.Wrap(err, "Can't start precalc job")
 	}
 	go func() { //precalculate at once
 		err := p.RunOnSingleNode(func() {
 			if appErr := p.preCalculateRecommendations(); appErr != nil {
-				mlog.Error("Can't calculate recommendations", mlog.Err(appErr))
+				p.API.LogError("Can't calculate recommendations", "error", appErr)
 			}
 		})
 		if err != nil {
-			mlog.Error("Can't run on single node", mlog.Err(err))
+			p.API.LogError("Can't run on single node", "error", err)
 		}
 	}()
 	return nil

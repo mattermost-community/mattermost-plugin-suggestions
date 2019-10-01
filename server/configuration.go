@@ -82,7 +82,9 @@ func (p *Plugin) OnConfigurationChange() error {
 
 	if p.preCalcJob != nil && p.preCalcPeriod != configuration.PreCalculationPeriod {
 		p.preCalcJob.Stop()
-		p.startPrecalcJob()
+		if err := p.startPrecalcJob(); err != nil {
+			return errors.Wrap(err, "Can't start a precalc job")
+		}
 	}
 
 	return nil

@@ -4,7 +4,6 @@ import (
 	"sort"
 
 	"github.com/mattermost/mattermost-plugin-suggestions/server/ml"
-	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -34,7 +33,6 @@ func (p *Plugin) getChannelListFromRecommendations(recommendations []*recommende
 	channels := make([]*model.Channel, 0, n)
 	for i := 0; i < n; i++ {
 		channel, err := p.API.GetChannel(recommendations[i].ChannelID)
-		println(err)
 		if err != nil {
 			return nil, err
 		}
@@ -44,7 +42,7 @@ func (p *Plugin) getChannelListFromRecommendations(recommendations []*recommende
 }
 
 func (p *Plugin) preCalculateRecommendations() *model.AppError {
-	mlog.Info("preCalculateRecommendations")
+	p.API.LogInfo("preCalculateRecommendations")
 	// get total activity of all users
 	userActivity, err := p.getActivity()
 	if err != nil {
@@ -77,7 +75,10 @@ func (p *Plugin) preCalculateRecommendations() *model.AppError {
 				}
 			}
 		}
-		p.saveUserRecommendations(userID, recommendedChannels)
+		err = p.saveUserRecommendations(userID, recommendedChannels)
+		if err != nil {
+			p.API.LogInfo("Can't save recommendations for", "user", userID)
+		}
 		count++
 	}
 	return nil
