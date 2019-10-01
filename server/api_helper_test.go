@@ -28,8 +28,8 @@ func TestGetAllChannels(t *testing.T) {
 	t.Run("No error", func(t *testing.T) {
 		plugin, api := getUsersInTeamPlugin()
 		channels := []*model.Channel{
-			&model.Channel{Id: "Id1"},
-			&model.Channel{Id: "Id2"},
+			{Id: "Id1"},
+			{Id: "Id2"},
 		}
 		correctChannels := []*model.Channel{
 			channels[0],
@@ -66,9 +66,9 @@ func TestGetTeamUsers(t *testing.T) {
 
 	t.Run("No error", func(t *testing.T) {
 		correctUsers := map[string][]*model.User{
-			"teamID": []*model.User{
-				&model.User{Id: "userID1"},
-				&model.User{Id: "userID2"},
+			"teamID": {
+				{Id: "userID1"},
+				{Id: "userID2"},
 			},
 		}
 		plugin, api := getUsersInTeamPlugin()

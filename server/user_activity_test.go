@@ -150,8 +150,8 @@ func TestGetActivitySince(t *testing.T) {
 	t.Run("getActivityForChannel error", func(t *testing.T) {
 		plugin, api := getUsersInTeamPlugin()
 		channels := []*model.Channel{
-			&model.Channel{Id: "Id1"},
-			&model.Channel{Id: "Id2"},
+			{Id: "Id1"},
+			{Id: "Id2"},
 		}
 
 		api.On("GetChannelsForTeamForUser", mock.Anything, mock.Anything, mock.Anything).Return(channels, nil)
@@ -164,7 +164,7 @@ func TestGetActivitySince(t *testing.T) {
 	t.Run("get all activities", func(t *testing.T) {
 		plugin, api := getUsersInTeamPlugin()
 		channels := []*model.Channel{
-			&model.Channel{Id: "channel1"},
+			{Id: "channel1"},
 		}
 		api.On("GetChannelsForTeamForUser", mock.Anything, mock.Anything, mock.Anything).Return(channels, nil)
 		posts0, correctActivity := createMockPostList()
@@ -182,7 +182,7 @@ func TestGetActivitySince(t *testing.T) {
 	t.Run("get activities since", func(t *testing.T) {
 		plugin, api := getUsersInTeamPlugin()
 		channels := []*model.Channel{
-			&model.Channel{Id: "channel1"},
+			{Id: "channel1"},
 		}
 		api.On("GetChannelsForTeamForUser", mock.Anything, mock.Anything, mock.Anything).Return(channels, nil)
 		postList, correctActivity := createMockPostList()
@@ -219,7 +219,7 @@ func TestGetActivity(t *testing.T) {
 		defer helpers.AssertExpectations(t)
 
 		channels := []*model.Channel{
-			&model.Channel{Id: "channel1"},
+			{Id: "channel1"},
 		}
 		api.On("GetChannelsForTeamForUser", mock.Anything, mock.Anything, mock.Anything).Return(channels, nil)
 		postList, _ := createMockPostList()
@@ -238,7 +238,7 @@ func TestGetActivity(t *testing.T) {
 		defer helpers.AssertExpectations(t)
 
 		channels := []*model.Channel{
-			&model.Channel{Id: "channel1"},
+			{Id: "channel1"},
 		}
 		api.On("GetChannelsForTeamForUser", mock.Anything, mock.Anything, mock.Anything).Return(channels, nil)
 		postList, _ := createMockPostList()
@@ -257,7 +257,7 @@ func TestGetActivity(t *testing.T) {
 		defer helpers.AssertExpectations(t)
 
 		channels := []*model.Channel{
-			&model.Channel{Id: "channel1"},
+			{Id: "channel1"},
 		}
 		api.On("GetChannelsForTeamForUser", mock.Anything, mock.Anything, mock.Anything).Return(channels, nil)
 		postList, correctActivity := createMockPostList()
