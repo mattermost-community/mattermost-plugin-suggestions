@@ -1,111 +1,80 @@
 package main
 
 import (
-	"io/ioutil"
-	"path/filepath"
-	"sync"
+	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
+	pluginapi "github.com/mattermost/mattermost-plugin-api"
+	"github.com/mattermost/mattermost-plugin-suggestions/server/bot"
+	"github.com/mattermost/mattermost-plugin-suggestions/server/command"
+	"github.com/mattermost/mattermost-plugin-suggestions/server/config"
+	"github.com/mattermost/mattermost-plugin-suggestions/server/store"
+	"github.com/mattermost/mattermost-plugin-suggestions/server/suggest"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/pkg/errors"
-	"github.com/robfig/cron/v3"
+	"github.com/sirupsen/logrus"
 )
+
+const preCalcPeriod = "weekly"
 
 // Plugin implements the interface expected by the Mattermost server to communicate between the server and plugin processes.
 type Plugin struct {
 	plugin.MattermostPlugin
 
-	// configurationLock synchronizes access to the configuration.
-	configurationLock sync.RWMutex
-
-	// configuration is the active plugin configuration. Consult getConfiguration and
-	// setConfiguration for usage.
-	configuration *configuration
-
-	// a job for pre-calculating channel recommendations for users.
-	preCalcJob    *cron.Cron
-	preCalcPeriod string
-	botUserID     string
+	config    *config.ServiceImpl
+	bot       *bot.Bot
+	suggester suggest.Service
 }
 
-type readFile func(filename string) ([]byte, error)
-
-func (p *Plugin) setupBot(reader readFile) error {
-	botID, err := p.Helpers.EnsureBot(&model.Bot{
-		Username:    "suggestions",
-		DisplayName: "Suggestions",
-		Description: "Created by the Suggestions plugin.",
-	})
-	if err != nil {
-		return errors.Wrap(err, "failed to ensure suggestions bot")
-	}
-	p.botUserID = botID
-	bundlePath, err := p.API.GetBundlePath()
-	if err != nil {
-		return errors.Wrap(err, "couldn't get bundle path")
-	}
-
-	profileImage, err := reader(filepath.Join(bundlePath, "assets", "profile.jpeg"))
-	if err != nil {
-		return errors.Wrap(err, "couldn't read profile image")
-	}
-
-	appErr := p.API.SetProfileImage(botID, profileImage)
-	if appErr != nil {
-		return errors.Wrap(appErr, "couldn't set profile image")
-	}
-	return nil
-}
-
-func (p *Plugin) startPrecalcJob() error {
-	config := p.getConfiguration()
-	p.preCalcPeriod = config.PreCalculationPeriod
-	c := cron.New()
-	_, err := c.AddFunc(p.preCalcPeriod, func() {
-		err := p.RunOnSingleNode(func() {
-			if appErr := p.preCalculateRecommendations(); appErr != nil {
-				p.API.LogError("Can't calculate recommendations", "error", appErr)
-			}
-		})
-		if err != nil {
-			p.API.LogError("Can't run on single node", "error", err)
-		}
-	})
-	if err != nil {
-		return err
-	}
-	c.Start()
-	p.preCalcJob = c
-	return nil
-}
-
-// OnActivate will be run on plugin activation.
+// OnActivate Called when this plugin is activated.
 func (p *Plugin) OnActivate() error {
-	p.API.RegisterCommand(getCommand())
-	err := p.setupBot(ioutil.ReadFile)
+	pluginAPIClient := pluginapi.NewClient(p.API)
+	p.config = config.NewConfigService(pluginAPIClient)
+	pluginapi.ConfigureLogrus(logrus.New(), pluginAPIClient)
+
+	botID, err := pluginAPIClient.Bot.EnsureBot(&model.Bot{
+		Username:    "suggest",
+		DisplayName: "Suggester Bot",
+		Description: "A bot suggesting different insights in Mattermost.",
+	},
+		pluginapi.ProfileImagePath("assets/profile.jpeg"),
+	)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to ensure insights bot")
 	}
-	if err = p.startPrecalcJob(); err != nil {
-		return errors.Wrap(err, "Can't start precalc job")
+
+	err = p.config.UpdateConfiguration(func(c *config.Configuration) {
+		c.BotUserID = botID
+		c.AdminLogLevel = "debug"
+	})
+	if err != nil {
+		return errors.Wrapf(err, "failed save bot to config")
 	}
-	go func() { //precalculate at once
-		err := p.RunOnSingleNode(func() {
-			if appErr := p.preCalculateRecommendations(); appErr != nil {
-				p.API.LogError("Can't calculate recommendations", "error", appErr)
-			}
-		})
-		if err != nil {
-			p.API.LogError("Can't run on single node", "error", err)
-		}
-	}()
+
+	p.bot = bot.New(pluginAPIClient, p.config.GetConfiguration().BotUserID, p.config)
+	config := p.API.GetUnsanitizedConfig()
+	st := store.NewStore(*config.SqlSettings.DriverName, pluginAPIClient, p.bot)
+	p.suggester = suggest.NewService(pluginAPIClient, st, p.bot, p.config, p.bot)
+	p.suggester.StartPreCalcJob(p.API)
+	if err := command.RegisterCommands(p.API.RegisterCommand); err != nil {
+		return errors.Wrapf(err, "failed register commands")
+	}
+
+	p.API.LogDebug("Suggestions plugin Activated")
 	return nil
 }
 
-// OnDeactivate will be run on plugin deactivation.
-func (p *Plugin) OnDeactivate() error {
-	if p.preCalcJob != nil {
-		p.preCalcJob.Stop()
+// ExecuteCommand executes a given command and returns a command response.
+func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+	com := command.NewCommand(args, p.bot, pluginapi.NewClient(p.API), p.bot, p.suggester)
+	if err := com.Handle(); err != nil {
+		return nil, model.NewAppError("insights.ExecuteCommand", "Unable to execute command.", nil, err.Error(), http.StatusInternalServerError)
 	}
-	return nil
+
+	return &model.CommandResponse{}, nil
+}
+
+// OnDeactivate Called when this plugin is deactivated.
+func (p *Plugin) OnDeactivate() error {
+	return p.suggester.StopPreCalcJob()
 }

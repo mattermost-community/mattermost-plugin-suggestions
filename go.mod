@@ -3,14 +3,12 @@ module github.com/mattermost/mattermost-plugin-suggestions
 go 1.12
 
 require (
-	github.com/blang/semver v3.6.1+incompatible // indirect
-	github.com/mattermost/mattermost-server v1.4.1-0.20190911153151-98489b9e67d9
-	github.com/pkg/errors v0.8.1
-	github.com/robfig/cron/v3 v3.0.0
-	github.com/stretchr/testify v1.4.0
+	github.com/Masterminds/squirrel v1.4.0
+	github.com/mattermost/mattermost-plugin-api v0.0.11-0.20200715150926-070e5e5f418e
+	github.com/mattermost/mattermost-server/v5 v5.3.2-0.20200724145346-c0fa478cddfb
+	github.com/mholt/archiver/v3 v3.3.0
+	github.com/pkg/errors v0.9.1
+	github.com/segmentio/analytics-go v3.1.0+incompatible // indirect
+	github.com/sirupsen/logrus v1.6.0
+	github.com/stretchr/testify v1.6.1
 )
-
-// Workaround for https://github.com/golang/go/issues/30831 and fallout.
-//replace github.com/golang/lint => github.com/golang/lint v0.0.0-20190227174305-8f45f776aaf1
-
-//replace willnorris.com/go/imageproxy@v0.8.1-0.20190326225038-d4246a08fdec => willnorris.com/go/imageproxy v0.9.0

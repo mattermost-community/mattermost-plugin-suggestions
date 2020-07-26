@@ -127,7 +127,6 @@ func (knn *SimpleKNN) Predict(userID, channelID string) (float64, error) {
 	if !exists {
 		return 0, errors.New("unknown userID" + userID)
 	}
-
 	if len(knn.channelSimilarityMatrix) < knn.k {
 		return 0, nil // Can not predict, number of channels are too small
 	}
@@ -139,6 +138,7 @@ func (knn *SimpleKNN) Predict(userID, channelID string) (float64, error) {
 		score += knn.channelSimilarityMatrix[channel][neighbors[i]] * knn.activityMatrix[neighbors[i]][user]
 		sum += knn.channelSimilarityMatrix[channel][neighbors[i]]
 	}
+
 	if sum != 0 {
 		score /= sum
 	}
