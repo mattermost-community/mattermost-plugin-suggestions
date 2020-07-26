@@ -16,7 +16,10 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
-// ServiceImpl holds the information needed by the InsightsService's methods to complete their functions.
+// precalculate recommendations in every 3 days
+const jobInterval = 3 * 24 * time.Hour
+
+// ServiceImpl holds the information needed by the Suggester's methods to complete their functions.
 type ServiceImpl struct {
 	pluginAPI     *pluginapi.Client
 	configService config.Service
@@ -26,12 +29,12 @@ type ServiceImpl struct {
 	job           *cluster.Job
 }
 
-type ChannelScore struct {
+type channelScore struct {
 	ChannelID string  // identifier
 	Score     float64 // score
 }
 
-// NewService creates a new insights ServiceImpl.
+// NewService creates a new Suggester ServiceImpl.
 func NewService(pluginAPI *pluginapi.Client, store *store.Store, poster bot.Poster, configService config.Service, logger bot.Logger) *ServiceImpl {
 	suggester := &ServiceImpl{
 		pluginAPI:     pluginAPI,
@@ -43,9 +46,10 @@ func NewService(pluginAPI *pluginapi.Client, store *store.Store, poster bot.Post
 	return suggester
 }
 
+// StartPreCalcJob starts preCalculateRecommendations as a job
 func (s *ServiceImpl) StartPreCalcJob(api plugin.API) error {
 	callback := func() { s.PreCalculateRecommendations() }
-	job, err := cluster.Schedule(api, "job", cluster.MakeWaitForInterval(1*time.Minute), callback)
+	job, err := cluster.Schedule(api, "job", cluster.MakeWaitForInterval(jobInterval), callback)
 	if err != nil {
 		return err
 	}
@@ -53,10 +57,12 @@ func (s *ServiceImpl) StartPreCalcJob(api plugin.API) error {
 	return nil
 }
 
+// StopPreCalcJob stops precalculation job
 func (s *ServiceImpl) StopPreCalcJob() error {
 	return s.job.Close()
 }
 
+// PreCalculateRecommendations precalculates recommendations for every user in every team
 func (s *ServiceImpl) PreCalculateRecommendations() error {
 	s.logger.Infof("preCalculateRecommendations")
 	teams, err := s.pluginAPI.Team.List()
@@ -72,9 +78,6 @@ func (s *ServiceImpl) PreCalculateRecommendations() error {
 }
 
 func (s *ServiceImpl) preCalculateRecommendationsForTeam(teamID string) error {
-	if teamID != "z6aynysqmfrdbjzt15hwyps1jr" {
-		return nil
-	}
 	// get total activity of all users
 	channelActivity, err := s.store.GetChannelActivity(teamID)
 	if err != nil {
@@ -94,7 +97,7 @@ func (s *ServiceImpl) preCalculateRecommendationsForTeam(teamID string) error {
 
 	count := 0
 	for userID := range channelActivity {
-		recommendedChannels := make([]*ChannelScore, 0)
+		recommendedChannels := make([]*channelScore, 0)
 		for _, channel := range channels {
 			if _, ok := channelActivity[userID][channel]; !ok {
 				score, err := knn.Predict(userID, channel)
@@ -104,7 +107,7 @@ func (s *ServiceImpl) preCalculateRecommendationsForTeam(teamID string) error {
 				}
 
 				if score != 0 {
-					recommendedChannels = append(recommendedChannels, &ChannelScore{
+					recommendedChannels = append(recommendedChannels, &channelScore{
 						ChannelID: channel,
 						Score:     score,
 					})
@@ -121,6 +124,7 @@ func (s *ServiceImpl) preCalculateRecommendationsForTeam(teamID string) error {
 	return nil
 }
 
+// GetChannelRecommendations retrieves calculated recommendations
 func (s *ServiceImpl) GetChannelRecommendations(userID, teamID string) ([]*model.Channel, error) {
 	recommendations, err := s.retrieveChannelRecommendations(userID, teamID)
 	if err != nil {

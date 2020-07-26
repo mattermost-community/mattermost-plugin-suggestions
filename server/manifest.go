@@ -16,7 +16,7 @@ const manifestStr = `
   "name": "Suggestions",
   "description": "Suggest channels to users on request.",
   "version": "0.1.0",
-  "min_server_version": "5.12.0",
+  "min_server_version": "5.26.0",
   "server": {
     "executables": {
       "linux-amd64": "server/dist/plugin-linux-amd64",
@@ -28,16 +28,7 @@ const manifestStr = `
   "settings_schema": {
     "header": "The Mattermost Suggestions Plugin recommends interesting channels to the user",
     "footer": "",
-    "settings": [
-      {
-        "key": "PreCalculationPeriod",
-        "display_name": "Precalculation period",
-        "type": "text",
-        "help_text": "Channel recommendations are precalculated periodically. One can choose the period based on [cron specifications](https://godoc.org/github.com/robfig/cron). Examples: \n @daily - Run once a day, midnight. \n @hourly - Run once an hour, beginning of hour. \n @every 1h30m - Run every hour and thirty minutes. \n The default is @weekly",
-        "placeholder": "",
-        "default": "@weekly"
-      }
-    ]
+    "settings": []
   }
 }
 `

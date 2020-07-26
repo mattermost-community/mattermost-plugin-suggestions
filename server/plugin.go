@@ -29,7 +29,7 @@ type Plugin struct {
 // OnActivate Called when this plugin is activated.
 func (p *Plugin) OnActivate() error {
 	pluginAPIClient := pluginapi.NewClient(p.API)
-	p.config = config.NewConfigService(pluginAPIClient)
+	p.config = config.NewConfigService(pluginAPIClient, manifest)
 	pluginapi.ConfigureLogrus(logrus.New(), pluginAPIClient)
 
 	botID, err := pluginAPIClient.Bot.EnsureBot(&model.Bot{
@@ -40,7 +40,7 @@ func (p *Plugin) OnActivate() error {
 		pluginapi.ProfileImagePath("assets/profile.jpeg"),
 	)
 	if err != nil {
-		return errors.Wrapf(err, "failed to ensure insights bot")
+		return errors.Wrapf(err, "failed to ensure suggester bot")
 	}
 
 	err = p.config.UpdateConfiguration(func(c *config.Configuration) {
@@ -68,7 +68,7 @@ func (p *Plugin) OnActivate() error {
 func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	com := command.NewCommand(args, p.bot, pluginapi.NewClient(p.API), p.bot, p.suggester)
 	if err := com.Handle(); err != nil {
-		return nil, model.NewAppError("insights.ExecuteCommand", "Unable to execute command.", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("suggestions.ExecuteCommand", "Unable to execute command.", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return &model.CommandResponse{}, nil
