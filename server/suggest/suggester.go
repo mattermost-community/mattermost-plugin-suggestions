@@ -7,7 +7,6 @@ import (
 
 const numberOfRecommendedChannels = 5
 const numberOfNeighbors = 10 // TODO exact number of nearest neighbors should be determined from real data
-const channelLimit = 1000
 
 // Service is the suggestions/service interface.
 type Service interface {
