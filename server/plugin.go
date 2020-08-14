@@ -50,8 +50,7 @@ func (p *Plugin) OnActivate() error {
 	}
 
 	p.bot = bot.New(pluginAPIClient, p.config.GetConfiguration().BotUserID, p.config)
-	config := p.API.GetUnsanitizedConfig()
-	st := store.NewStore(*config.SqlSettings.DriverName, pluginAPIClient, p.bot)
+	st := store.NewStore(pluginAPIClient, p.bot)
 	p.suggester = suggest.NewService(pluginAPIClient, st, p.bot, p.config, p.bot)
 	p.suggester.StartPreCalcJob(p.API)
 	if err := command.RegisterCommands(p.API.RegisterCommand); err != nil {

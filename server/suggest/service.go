@@ -16,8 +16,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
-// precalculate recommendations in every 3 days
-const jobInterval = 3 * 24 * time.Hour
+// precalculate recommendations every day
+const jobInterval = 24 * time.Hour
 
 // ServiceImpl holds the information needed by the Suggester's methods to complete their functions.
 type ServiceImpl struct {
@@ -79,14 +79,9 @@ func (s *ServiceImpl) PreCalculateRecommendations() error {
 
 func (s *ServiceImpl) preCalculateRecommendationsForTeam(teamID string) error {
 	// get total activity of all users
-	channelActivity, err := s.store.GetChannelActivity(teamID)
+	channelActivity, channels, err := s.store.GetChannelActivity(teamID)
 	if err != nil {
 		return errors.Wrap(err, "Can't get user activity.")
-	}
-
-	channels, err := s.store.GetChannelsForTeam(teamID)
-	if err != nil {
-		return errors.Wrap(err, "Can't get public channels for a user.")
 	}
 
 	k := min(numberOfNeighbors, len(channels)/2+1)

@@ -19,14 +19,14 @@ type Store struct {
 }
 
 // NewStore .
-func NewStore(driverName string, pluginAPI *pluginapi.Client, log bot.Logger) *Store {
+func NewStore(pluginAPI *pluginapi.Client, log bot.Logger) *Store {
 	db, err := pluginAPI.Store.GetReplicaDB()
 	if err != nil {
 		log.Errorf("error while getting DB replica", err)
 		return nil
 	}
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Question)
-	if driverName == model.DATABASE_DRIVER_POSTGRES {
+	if pluginAPI.Store.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		builder = builder.PlaceholderFormat(sq.Dollar)
 	}
 	builder = builder.RunWith(db)
