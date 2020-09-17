@@ -100,7 +100,8 @@ func (s *ServiceImpl) preCalculateRecommendationsForTeam(teamID string) error {
 		recommendedChannels := make([]*channelScore, 0)
 		for _, channel := range channels {
 			if _, ok := channelActivity[userID][channel]; !ok {
-				score, err := knn.Predict(userID, channel)
+				var score float64
+				score, err = knn.Predict(userID, channel)
 				if err != nil {
 					// unknown user or unknown channel
 					continue
