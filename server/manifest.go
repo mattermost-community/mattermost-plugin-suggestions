@@ -26,7 +26,7 @@ const manifestStr = `
     "executable": ""
   },
   "settings_schema": {
-    "header": "The Mattermost Suggestions Plugin recommends interesting channels to the user",
+    "header": "The Mattermost Suggestions plugin recommends interesting channels to the user.",
     "footer": "",
     "settings": []
   }
